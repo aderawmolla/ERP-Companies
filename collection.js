@@ -162,9 +162,34 @@ frm.set_value("table_34", []);//assigning table as empty
 
 //looping over table field
 //adding eval
-"depends_on": "eval:doc.purpose == 'Material Transfer'",
-  eval:doc.delivered_by_supplier==1||doc.supplier
+// "depends_on":"eval:doc.purpose == 'Material Transfer'",
+//   eval:doc.delivered_by_supplier==1||doc.supplier
+///another way of fetching documents mainly this is important for permission issues
+frappe.ui.form.on('Supplier Quotation', {
+    req_qutation: function (frm) {
+        if (frm.doc.req_qutation) {
 
+            frm.clear_table('items');
+
+            frappe.model.with_doc('Request for Quotation', frm.doc.req_qutation, function () {
+
+                let source_doc = frappe.model.get_doc('Request for Quotation', frm.doc.req_qutation);
+
+                $.each(source_doc.items, function (index, source_row) {
+
+			const target_row = frm.add_child('items');	
+                    	target_row.item_code = source_row.item_code;
+                        target_row.description = source_row.description;
+                        target_row.uom = source_row.uom;
+                        target_row.qty = source_row.qty;
+                        
+
+                });
+		frm.refresh_field('items');
+            });
+        }
+    },
+});
     
 
 

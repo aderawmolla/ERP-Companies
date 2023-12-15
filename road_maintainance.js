@@ -1,8 +1,6 @@
 //Two Days Count...
 //Night Time Count
 //Seasonal Count
-
-
 frappe.ui.form.on("Traffic Count Result", {
     onload: function (frm, cdt, cdn) {
         console.log("start function");

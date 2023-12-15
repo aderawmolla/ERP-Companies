@@ -1,5 +1,4 @@
 
-
 frappe.ui.form.on('Maintenance Visit Purpose', {
     //when equip_code of Tyre Control Table changes it fetches data from the database and assign to equp_type of table document rows
     item_code: function (frm, cdt, cdn) {

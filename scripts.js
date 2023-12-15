@@ -165,23 +165,22 @@ frappe.ui.form.on('Daily Utilization Register', {
     }
 });
 //down reason
-PM-Preventive  Maintainance
-WP-Waiting For Pats
-WM-Waiting for  MaaanPower
-UR-Under Repair
-
-//idle reason
-FL-Fuel/Lubricant Shortage
-AD-Activity Dependent
-OP-Operator Problem
-MO-Mobalization//Demobalization
-WD-Waiting for Demobalization
-FM-Force Majeure
-ED-Equipment Dependent
-WS-Water Shortage
-LC-Lack of Coordination
-MF-Miscellaneous Factor
-WC-Weather Condition
+// PM-Preventive  Maintainance
+// WP-Waiting For Pats
+// WM-Waiting for  MaaanPower
+// UR-Under Repair
+// //idle reason
+// FL-Fuel/Lubricant Shortage
+// AD-Activity Dependent
+// OP-Operator Problem
+// MO-Mobalization//Demobalization
+// WD-Waiting for Demobalization
+// FM-Force Majeure
+// ED-Equipment Dependent
+// WS-Water Shortage
+// LC-Lack of Coordination
+// MF-Miscellaneous Factor
+// WC-Weather Condition
 //script to update the value of child doctype fields
 frappe.ui.form.on('Utilization Register Table', {
     first_half_operator: function(frm, cdt, cdn) {

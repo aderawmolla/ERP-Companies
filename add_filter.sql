@@ -25,10 +25,7 @@ frappe.query_reports["Cashflow Report"] = {
 		},
 	]
 }
-
-
 //payroll filtering
-
 frappe.query_reports["Employees Payroll Report"] = {
     "filters": [
         {

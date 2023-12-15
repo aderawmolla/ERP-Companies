@@ -21,8 +21,6 @@ SELECT
 	ts.activity_total_cost AS "Executed Amount:120"
 FROM 
 	`tabDaily Plan` ts;
-
-
 --Periodic work report
 SELECT 
     ts.project AS "Project:Link/Project:120",
