@@ -69,33 +69,32 @@ frappe.ui.form.on('Annual Procurement Table', {
 
 function calculateRowTotal(child, frm) {
     var row_total = (
-        child.data_1 | 0 +
-        child.data_2 | 0 +
-        child.data_3 | 0 +
-        child.data_4 | 0 +
-        child.data_5 | 0 +
-        child.data_6 | 0 +
-        child.data_7 | 0 +
-        child.data_8 | 0 +
-        child.data_9 | 0 +
-        child.data_10 | 0 +
-        child.data_11 | 0 +
-        child.data_12 | 0 +
-        child.data_13 | 0 +
-        child.data_14 | 0 +
-        child.data_15 | 0
+        (child.data_1 || 0 )+
+        (child.data_2 || 0 )+
+        (child.data_3 || 0 )+
+        (child.data_4 || 0 )+
+        (child.data_5 || 0 )+
+        (child.data_6 || 0 )+
+        (child.data_7 || 0 )+
+        (child.data_8 || 0 )+
+        (child.data_9 || 0 )+
+        (child.data_10 || 0) +
+        (child.data_11 || 0) +
+        (child.data_12 || 0) +
+        (child.data_13 || 0) +
+        (child.data_14 || 0) +
+        (child.data_15 || 0)
     );
 
     child.total = parseFloat(row_total);
-
+    frm.refresh_field("procurement_table")
     var total_cost = 0;
 
     $.each(frm.doc.procurement_table, function (i, d) {
         // Make sure 'total' and 'rate' properties exist before using them
         // calculate incentive
-        child.total_cost = d.total * d.rate;
-
-        total_cost += d.total * d.rate;
+        child.total_cost =parseFloat(d.total) * d.rate;
+        total_cost += parseFloat(d.total)* d.rate;
     });
 
     frm.refresh_field("procurement_table");

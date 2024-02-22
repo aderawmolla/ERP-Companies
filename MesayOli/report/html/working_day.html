@@ -1,0 +1,185 @@
+<h2 class="text-center">{%= __("Overtime Report") %}</h2>
+
+
+
+<style>
+
+    .signature-section {
+
+        display: flex;
+
+        justify-content: space-between;
+
+        margin-top: 20px;
+
+    }
+    .signature-field {
+
+        text-align: center;
+
+        margin-right: 20px;
+
+    }
+
+    .signature-label {
+
+        margin-bottom: 5px;
+
+        font-weight: bold;
+
+        text-decoration: underline;
+
+    }
+
+
+
+    .signature-box {
+
+        width: 250px;
+
+        height: 40px;
+
+        border: 1px solid #000;
+
+        margin-bottom: 5px;
+
+    }
+
+
+
+    input[name^="prepared_by"],
+
+    input[name^="checked_by"],
+
+    input[name^="approved_by"] {
+
+        width: 250px;
+
+    }
+
+</style>
+
+
+
+<table class="table table-bordered">
+
+    <thead>
+
+        <tr>
+
+            <td>SR.No</td>
+
+            {% for(var i=0, l=Object.keys(data[0]).length; i<l; i++) { %}
+
+                <th>{%= Object.keys(data[0])[i] %}</th>
+
+            {% } %}
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for(var i=0, l=data.length - 1; i<l; i++) { %} <!-- Exclude the last row -->
+
+            <tr>
+
+                <td>{%= i + 1 %}</td>
+
+                {% for(var j=0, keys=Object.keys(data[i]), m=keys.length; j<m; j++) { %}
+
+                    <td>{%= (typeof data[i][keys[j]] === 'number') ? parseFloat(data[i][keys[j]]).toFixed(2) : data[i][keys[j]] %}</td>
+
+                {% } %}
+
+            </tr>
+
+        {% } %}
+
+    </tbody>
+
+</table>
+
+
+
+<div class="signature-section">
+
+    <div class="signature-field" style="margin-right: 20px;">
+
+        <div style="font-weight: bold; text-decoration: underline;">Prepared By</div>
+
+        <div style="display: flex; padding-top: 8px; justify-content: space-between; align-items: center; padding: 4px;">
+
+            <div class="signature-label">Name:</div>
+
+            <input type="text" name="prepared_by_name" style="width: 250px;" value="Alemayehu Haile Kabeta">
+
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px;">
+
+            <div class="signature-label">Sign.</div>
+
+            <div class="signature-box" name="prepared_by_signature"></div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="signature-field" style="margin-right: 20px;">
+
+        <div style="font-weight: bold; text-decoration: underline;">Checked By</div>
+
+        <div style="display: flex; padding-top: 8px; justify-content: space-between; align-items: center; padding: 4px;">
+
+            <div class="signature-label">Name:</div>
+
+            <input type="text" name="checked_by_name" style="width: 250px;" value="Alemayehu Haile Kabeta">
+
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px;">
+
+            <div class="signature-label">Sign.</div>
+
+            <div class="signature-box" name="checked_by_signature"></div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="signature-field">
+
+        <div class="signature-label" style="font-weight: bold; text-decoration: underline;">Approved By</div>
+
+        <div style="display: flex; padding-top: 8px; justify-content: space-between; align-items: center; padding: 4px;">
+
+            <div class="signature-label">Name:</div>
+
+            <input type="text" name="approved_by_name" style="width: 250px;" value="Mirkena Toyi Golga">
+
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px;">
+
+            <div class="signature-label">Sign.</div>
+
+            <div class="signature-box" name="approved_by_signature"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+<p class="text-right text-muted">Printed On {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %}</p>
+

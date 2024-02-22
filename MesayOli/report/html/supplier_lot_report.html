@@ -1,0 +1,206 @@
+{%
+    var _p = [],
+            print = function () {
+                _p.push.apply(_p, arguments)
+            };
+        with (obj) {
+            _p.push('
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Supplier Winner Report</title>
+            </head>
+            
+            <body>
+                <h2 class="text-center">Supplier Winner Lot Report</h2>');
+                if (data.length > 0 && typeof data[0] === 'object') {
+                    _p.push('<h3 style="width: 30%;font-weight: bold;">', 'Date:  ' + data[0]["Date"], '</h3>');
+                    _p.push('<h3 style="width: 30%;font-weight: bold;">', 'RFQ No:  ' + data[0]["Request for Quotation"], '</h3>');
+                    _p.push('<h3 style="width: 30% ;font-weight: bold;">', 'PR No:  ' + " ", '</h3>');
+                    _p.push('<h3 style="width: 30%;font-weight: bold;">', 'Requesting Project:  ' + " ", '</h3>');
+                    _p.push('<h3 style="width: 30% ;font-weight: bold;">', 'For Project/Department:  ' + " ", '</h3>');  
+                }
+                
+             _p.push('<table class="table table-bordered">
+                <thead>
+                    <tr>');
+             
+                            
+            if (data.length > 0 && typeof data[0] === 'object') {
+                _p.push('<th style="width:10%;">item Code</th>');
+                _p.push('<th style="width:10%;">Description</th>');
+                _p.push('<th style="width:5%;">UOM</th>');
+                _p.push('<th style="width:5%;">QTY</th>');
+        
+                var uniqueSuppliers = [];
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i]["Supplier"] &&
+                        uniqueSuppliers.indexOf(data[i]["Supplier"]) === -1) {
+                        _p.push('<th style="width: 30%;">',
+                            data[i]["Supplier"] + ' U/Price </th>');
+                        _p.push('<th style="width: 30%;">',
+                            data[i]["Supplier"] + ' T/Price </th>');
+                        uniqueSuppliers.push(data[i]["Supplier"]);
+                    }
+                }
+                
+                _p.push('
+                                <th style="width: 5%;"> Best Total Price</th>
+                                <th style="width: 5%;">Delivery Time</th>
+                                <th style="width: 5%;"> Payment Term</th>
+                                <th style="width: 5%;">Best Supplier</th>
+                                ');
+            } else {
+                _p.push('<th>No data available</th>');
+            }
+            _p.push('</tr>
+                    </thead>
+                    <tbody>');
+        
+            var uniqueItemCodes = [];
+            for (var i = 0; i < data.length; i++) {
+                if (uniqueItemCodes.indexOf(data[i]["Item Code"]) === -1) {
+                    uniqueItemCodes.push(data[i]["Item Code"]);
+                    _p.push('<tr>');
+                    _p.push('<td style="width: 10%;">', data[i]["Item Code"], '</td>');
+                    _p.push('<td style="width: 10%;">', data[i]["Item Name"], '</td>');
+                    _p.push('<td style="width: 5%;">', data[i]["UOM"], '</td>');
+                    _p.push('<td style="width: 5%;">', data[i]["Quantity"], '</td>');
+        
+                    for (var j = 0; j < uniqueSuppliers.length; j++) {
+                        var supplierData = data.filter(d => d["Supplier"] === uniqueSuppliers[j] && d["Item Code"] === data[i]["Item Code"]);
+                      
+                        _p.push('<td style="width: 30%;">');
+        
+                            var unitRateAmount;
+                            for (var k = 0; k < supplierData.length; k++) {
+                                unitRateAmount = supplierData[k]["Unit Rate Amount"];
+                            }
+            
+                            var supplierItem = supplierData.find(d => d["Supplier"] === uniqueSuppliers[j]);
+                            if (supplierItem) {
+                                _p.push(unitRateAmount);
+                            } else {
+                                _p.push('');
+                            }
+            
+                            _p.push('</td>');
+    
+                      
+                        _p.push('<td style="width: 30%;">');
+        
+                        var totalAmount;
+                        for (var k = 0; k < supplierData.length; k++) {
+                            totalAmount = supplierData[k]["Total Amount"];
+                        }
+        
+                        var supplierItem = supplierData.find(d => d["Supplier"] === uniqueSuppliers[j]);
+                        if (supplierItem) {
+                            _p.push(totalAmount);
+                        } else {
+                            _p.push('');
+                        }
+        
+                        _p.push('</td>');
+                    }
+        
+                    var minTotalAmount = Infinity;
+                    var minSupplier = '';
+        
+                    for (var j = 0; j < uniqueSuppliers.length; j++) {
+                        var supplier = uniqueSuppliers[j];
+                        var supplierData = data.filter(d => d["Supplier"] === supplier && d["Item Code"] === data[i]["Item Code"]);
+                        var totalAmount = supplierData.reduce((sum, item) => sum + parseFloat(item["Total Amount"].replace(/,/g, '')), 0);
+        
+                        if (totalAmount < minTotalAmount && totalAmount!=0){
+                            minTotalAmount = totalAmount;
+                            minSupplier = supplier;
+                        }
+                    }
+    
+                    var formattedMinTotalAmount = minTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    var total = minTotalAmount;
+                    _p.push('<td style="width: 5%;">', total.toFixed(2),'</td>');
+                    _p.push('<td style="width: 5%;">',data[i]["Delivery Time"],'</td>');
+                    _p.push('<td style="width: 10%;">',data[i]["Payment Term"],'</td>');
+                    _p.push('<td style="width: 20%;">', minSupplier, '</td>');
+                    _p.push('</tr>');
+        
+                }
+            }
+        
+            
+            var supplierTotalSums = Array.from({ length: uniqueSuppliers.length }, () => 0);
+            
+            for (var j = 0; j < uniqueSuppliers.length; j++) {
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i]["Supplier"] === uniqueSuppliers[j]) {
+                        supplierTotalSums[j] += parseFloat(data[i]["Total Amount"].replace(/,/g, ''));
+                    }
+                }
+            }
+            
+            var minSupplierTotalIndex = supplierTotalSums.indexOf(Math.min(...supplierTotalSums));
+            var minTotalAmount = Math.min(...supplierTotalSums);
+            
+            _p.push('<tr>');
+            _p.push('<td colspan="2" style="width: 12%;font-size:14px;font-weight:bold;">Lot Winner </td>');
+            _p.push('<td colspan="2" style="width: 12%;font-size:14px;font-weight:bold;">SUB TOTAL </td>');
+    
+            for (var j = 0; j < uniqueSuppliers.length; j++) {
+                _p.push('<td style="width: 12%">  </td>');
+                _p.push('<td style="width: 12%">', supplierTotalSums[j].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
+            }
+            _p.push('<td style="width: 12%">', minTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
+            _p.push('<td colspan="2"  style="width: 12%"></td>');
+            _p.push('<td style="width: 12%;font-size:14px;">', uniqueSuppliers[minSupplierTotalIndex], '</td>');
+            _p.push('<td style="width: 12%"></td>');
+            _p.push('</tr>');
+    
+            _p.push('<tr>');
+                _p.push('<td colspan="2" style="width: 12%;font-size:14px;font-weight:bold;"> </td>');
+                _p.push('<td colspan="2" style="width: 12%;font-size:14px;font-weight:bold;">VAT (15%) </td>');
+        
+                for (var j = 0; j < uniqueSuppliers.length; j++) {
+                    _p.push('<td style="width: 12%">  </td>');
+                    _p.push('<td style="width: 12%">', (supplierTotalSums[j]*0.15).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
+                }
+                _p.push('<td style="width: 12%">', '</td>');
+                _p.push('<td colspan="2"  style="width: 12%"></td>');
+                _p.push('<td style="width: 12%;font-size:14px;">',  '</td>');
+                _p.push('<td style="width: 12%"></td>');
+                _p.push('</tr>');
+    
+    
+                _p.push('<tr>');
+                    _p.push('<td colspan="2" style="width: 12%;font-size:14px;font-weight:bold;"> </td>');
+                    _p.push('<td colspan="2" style="width: 12%;font-size:14px;font-weight:bold;">GRAND TOTAL </td>');
+            
+                    for (var j = 0; j < uniqueSuppliers.length; j++) {
+                        _p.push('<td style="width: 12%">  </td>');
+                        _p.push('<td style="width: 12%">', ((supplierTotalSums[j]*0.15)+supplierTotalSums[j]).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
+                    }
+                    _p.push('<td style="width: 12%">', '</td>');
+                    _p.push('<td colspan="2"  style="width: 12%"></td>');
+                    _p.push('<td style="width: 12%;font-size:14px;">',  '</td>');
+                    _p.push('<td style="width: 12%"></td>');
+                    _p.push('</tr>');
+            
+                        
+            _p.push('</tbody>
+                </table>
+                <div style="display:flex;flex-direction:row;justify-content:space-between;">
+                    <h3 type="text" style="font-weight:bold;">Prepared By_____________</h3>
+                    <h3 type="text" style="font-weight:bold;">Checked By_______________</h3>
+                    <h3 type="text" style="font-weight:bold;">Approved By_______________</h3>
+                </div>
+                
+            </body>
+             
+            </html>');
+        }
+        return _p.join('');
+        %}
+        

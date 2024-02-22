@@ -10,9 +10,7 @@ frappe.ui.form.on("Supplier Quotation", {
         }
     }
 });
-
 frappe.ui.form.on('Supplier Quotation', {
-
     req_qutation: function (frm) {
         if (frm.doc.req_qutation) {
 

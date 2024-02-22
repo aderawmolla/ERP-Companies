@@ -1,0 +1,149 @@
+
+<style>
+    .orders {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+    
+    .barcode {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+    
+    .page-break {
+    page-break-after:auto;
+    page-break-inside: avoid;
+    }
+    
+    .driver {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+    .footer{
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-top: 20px;
+      align-items: baseline;
+    
+    }
+    .prepare{
+     display:flex;
+     flex-direction: row;
+     justify-content: space-between;
+    }
+    .ticket{
+     display:flex;
+    align-items: baseline;
+    flex-direction: row;
+    justify-content: space-between;
+    }
+    .dispatcher{
+    display: flex;
+    flex-direction: column;
+    }
+    .driver{
+     display: flex;
+     flex-direction: column;     justify-content: space-between;
+    }
+    </style>
+    
+    {%- for row in doc.items -%}
+     <div class="page-break">
+     <img src="/files/btm.jpg" style="width:200px;height:200px;" alt="logo of African Gypsum">
+     <div class="orders">
+        <div>
+            <h5><b>Customer Name:</b> {{ doc.customer or '_____________________' }}</h5>
+            <h5><b>Plate No:</b> {{ doc.plate_no or '_____________________' }}</h5>
+            <h5><b>Driver Name:</b> {{ doc.driver_name or '_____________________' }}</h5>
+        </div>
+        <div>
+            <h5><b>L.A.No.:</b> {{ doc.name or '_____________________' }}</h5>
+            <h5><b>Coupon No:</b> {{ doc.coupon_number or '_____________________' }}</h5>
+            <h5><b>Order No :</b>{{ doc.sales_order or '_____________________' }}</h5>
+            <h5><b>Order Date :</b>{{ doc.sales_order_date or '_____________________' }}</h5>
+            <h5><b>Date:</b> {{ doc.posting_date or '_____________________' }}</h5>
+            <h5><b>FS.NO.:</b> {{doc.fsno or '_____________________' }}</h5>
+
+    
+        </div>
+    </div>
+        
+        <p>please receive the following goods</p>
+    
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th>Sr</th>
+                    <th>Item No</th>
+                    <th>Description</th>
+                    <th class="text-right">Qty.(Quintal)</th>
+                    <th class="text-right">Qty.(Bags)</th>
+                    <th class="text-right">Qty.(Bulk in Ton)</th>
+                </tr>
+    
+                <tr>
+                    <td style="width: 3%;">{{ row.idx }}</td>
+                    <td style="width: 20%;">{{ row.item_code}}</td>
+                    <td style="width: 10%;"><div style="border: 0px;">{{ row.description }}</div></td>
+                    <td style="width: 10%;"><div style="border: 0px;">{{ row.qty }}</div></td>
+                    <td style="width: 10%; text-align: right;">{{ row.qty or '____________' }}</td>
+                    <td style="width: 15%; text-align: right;">{{row.qty or '_____________'}}</td>
+                </tr>
+            </tbody>
+        </table>
+         <!-- <div class="prepare">
+           <div>
+               <span>Prepared By_________________</span>
+               <span>Sign_________________</span>
+           </div>
+            <div>
+               <span>Approved By_________________</span>
+               <span>Sign_________________</span>
+           </div>
+         </div> -->
+         <div class="ticket">
+          <div><h4>DELIVERED BY</h4></div>
+        </div>
+         <div>
+           <span>Time Out:_______________</span>
+           <span>Date:{{doc.posting_date or '________________'}}</span>
+           <span>Prepared By:{{doc.prepared_by or '__________________'}}</span>
+           <span>Sign:_______________________</span>
+        </div>
+        <div class="footer">
+           <div class="dispatcher">
+                <div>
+                        <h4>Received By</h4>
+                        <div> 
+                            <h5>Driver Name:{{doc.driver_name or '______________'}}</h5>
+                            <h5>Signature_______________</h5>
+                        </div>
+                         
+                        <!-- <h4>Production Superviser</h4>
+                        <div> 
+                            <h5>Name__________________</h5>
+                            <h5>Signature_______________</h5>
+                        </div>
+                          -->
+                       
+                       
+                </div>  
+            </div>
+            <div class="driver">
+                <h4 style="font-weight: bold;">To Gate</h4>
+                <div> 
+                    <h5>Checked Out By__________________</h5>
+                    <h5>Time and Date out__________________</h5>
+                    <h5>Signature____________________</h5>
+                </div>    
+         </div>
+        </div>
+    </div>
+    {%- endfor -%}

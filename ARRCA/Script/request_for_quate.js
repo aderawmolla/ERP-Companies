@@ -1,5 +1,4 @@
 
-
 cur_frm.add_fetch("item_code", "item_name", "item_name");
 cur_frm.add_fetch("item_code", "description", "description");
 frappe.ui.form.on('Request for Quotation', {

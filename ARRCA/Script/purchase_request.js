@@ -1,3 +1,8 @@
+cur_frm.add_fetch('plate_no', 'chasis_no', 'chasis_no');
+cur_frm.add_fetch('plate_no', 'engine_no', 'engine_no');
+cur_frm.add_fetch('plate_no', 'equipment_type', 'equipent_type');
+cur_frm.add_fetch('plate_no', 'model', 'model_no');
+
 frappe.ui.form.on('MRI', {
     item_code: function(frm, cdt, cdn) {
         var child = locals[cdt][cdn];
@@ -124,8 +129,8 @@ frappe.ui.form.on('Purchase Requisition', {
 
                             // Update child table rows with data
                             source_doc.items.forEach((source_row) => {
-                                if(source_row.stock_quantity<source_row.qty){
-                                    mconsole.log("${source_row.stock_quantity}, ${source_row.qty}")
+                                if(parseFloat(source_row.stock_quantity) < parseFloat(source_row.qty)){
+                                    console.log(`${source_row.stock_quantity}, ${source_row.qty}`)
                                     const target_row = frm.add_child('table_12');
                                     target_row.item_code = source_row.item_code;
                                     target_row.description = source_row.description;
@@ -136,7 +141,7 @@ frappe.ui.form.on('Purchase Requisition', {
                                     target_row.qty = source_row.qty;
                                     target_row.rate = source_row.rate;
                                     target_row.amount = source_row.amount;
-                                }
+                                }else{}
                                
                             });
 
@@ -145,6 +150,27 @@ frappe.ui.form.on('Purchase Requisition', {
                     }
                 });
             });
+        }
+    },
+
+    budget_year_plan: function(frm, cdt, cdn) {
+        if (frm.doc.budget_year_plan) {
+            frm.clear_table('table_12');
+
+            frappe.model.with_doc('Budget Year Procurement Plan', frm.doc.budget_year_plan, function() {
+                let source_doc = frappe.model.get_doc('Budget Year Procurement Plan', frm.doc. budget_year_plan);
+               
+                            source_doc.procurement_table.forEach((source_row) => {   
+                                    const target_row = frm.add_child('table_12');
+                                    target_row.item_code = source_row.type_of_material;
+                                    target_row.qty =source_row.amount;
+                                    target_row.uom = source_row.uom;
+                             
+                            })
+                            frm.refresh_field('table_12');
+                        }
+              
+            );
         }
     },
 });

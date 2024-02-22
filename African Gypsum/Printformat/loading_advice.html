@@ -1,0 +1,163 @@
+
+<style>
+    .orders {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+    
+    .barcode {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+    
+    .page-break {
+    page-break-after:auto;
+    page-break-inside: avoid;
+    }
+    
+    .driver {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+    .footer{
+      display: flex;
+      flex-direction: row;
+     justify-content: space-between;
+     margin-top: 20px;
+    align-items: baseline;
+    
+    }
+    .prepare{
+     display:flex;
+     flex-direction: row;
+     justify-content: space-between;
+    }
+    .ticket{
+     display:flex;
+    align-items: baseline;
+    flex-direction: row;
+    justify-content: space-between;
+    }
+    .dispatcher{
+    display: flex;
+    flex-direction: column;
+    }
+    .driver{
+     display: flex;
+     flex-direction: column;     justify-content: space-between;
+    }
+    </style>
+    
+    {%- for row in doc.loading_detail -%}
+     <div class="page-break">
+     <img src="/files/btm.jpg" style="width:200px;height:200px;" alt="logo of African Gypsum">
+     <div class="orders">
+        <div>
+            <!-- <h5><b>Customer No:</b> {{ doc.customer_no or '_____________________' }}</h5> -->
+            <h5><b>Customer Name:</b> {{ doc.customer or '_____________________' }}</h5>
+            <h5><b>Plate No:</b> {{ doc.plate_no or '_____________________' }}</h5>
+            <h5><b>Driver Name:</b> {{ doc.driver_name or '_____________________' }}</h5>
+            <h5><b>Prepared By:</b> {{ doc.prepared_by or '_____________________' }}</h5>
+
+            <!-- <h5><b>Tel:</b> {{ doc.tel or '_____________________' }}</h5> -->
+        </div>
+        <div>
+            <h5><b>L.A.No.:</b> {{ doc.name or '_____________________' }}</h5>
+            <h5><b>Coupon No:</b> {{ doc.coupon_number or '_____________________' }}</h5>
+            <h5><b>Order No :</b>{{ doc.order_no or '_____________________' }}</h5>
+            <h5><b>Order Date :</b>{{ doc.sales_order_date or '_____________________' }}</h5>
+            <h5><b>Date:</b> {{ doc.date or '_____________________' }}</h5>
+            <!-- <h5><b>Location:</b> {{ doc.location or '_____________________' }}</h5> -->
+            <h5><b>FS.NO.:</b> {{ doc.fsno or '_____________________' }}</h5>
+            <!-- <h5>MO.Tr.: {{ doc.motr or '_____________________' }}</h5> -->
+    
+        </div>
+    </div>
+        
+        <p>please receive the following goods</p>
+    
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th>Sr</th>
+                    <th>Item No</th>
+                    <th>Description</th>
+                    <th class="text-right">Qty.(Quintal)</th>
+                    <th class="text-right">Qty.(Bags)</th>
+                    <th class="text-right">Qty.(Bulk in Ton)</th>
+                </tr>
+    
+                <tr>
+                    <td style="width: 3%;">{{ row.idx }}</td>
+                    <td style="width: 20%;">{{ row.item_code}}</td>
+                    <td style="width: 10%;"><div style="border: 0px;">{{ row.description }}</div></td>
+                    <td style="width: 10%;"><div style="border: 0px;">{{ row.qtyquntal }}</div></td>
+                    <td style="width: 10%; text-align: right;">{{ row.qtybags }}</td>
+                    <td style="width: 15%; text-align: right;">{{row.qtybulk_in_ton}}</td>
+                </tr>
+            </tbody>
+        </table>
+         <!-- <div class="prepare">
+           <div>
+               <span>Prepared By_________________</span>
+               <span>Sign_________________</span>
+           </div>
+            <div>
+               <span>Approved By_________________</span>
+               <span>Sign_________________</span>
+           </div>
+         </div> -->
+         <div class="ticket">
+          <div><h4>To WEIGHBRIDGE OFFICE</h4></div>
+          <h4>TICKET NO______________</h4>
+        </div>
+         <div>
+           <span>Time in:_______________</span>
+           <span>Date:__________________</span>
+           <span>Attendant:______________</span>
+           <span>Sign:_______________________</span>
+        </div>
+        <div class="footer">
+           <div class="dispatcher">
+                <h4 style="display: inline; font-weight: bold;">Loaded By</h4>
+                <div>
+                        <h4>Dispatcher</h4>
+                        <div> 
+                            <h5>Name__________________</h5>
+                            <h5>Signature_______________</h5>
+                        </div>
+                         
+                        <h4>Production Superviser</h4>
+                        <div> 
+                            <h5>Name__________________</h5>
+                            <h5>Signature_______________</h5>
+                        </div>
+                         
+                </div>  
+            </div>
+
+
+
+             <div class="driver">
+                    <h5 style="font-weight: bold;">Received By</h5>
+                    <div> 
+                        <h5>Driver Name__________________</h5>
+                        <h5>Signature____________________</h5>
+                    </div>
+                     
+             </div>
+
+
+
+        </div>
+    </div>
+    {%- endfor -%}
+    
+    
+    

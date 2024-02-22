@@ -1,0 +1,99 @@
+<style>
+    .orders {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+
+    .barcode {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+
+    .page-break {
+        page-break-after: auto;
+        page-break-inside: avoid;
+    }
+
+    .driver {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        page-break-inside: avoid;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+{% set couponNumbers = [] %} {# Create an empty array to store coupon numbers #}
+
+{% for row in doc.coupon_detail %}
+    {% set couponValue = row.coupon_no or '_____________________' %} {# Get the coupon number or use a default value #}
+    {% set _ = couponNumbers.append(couponValue) %} {# Append the coupon number to the array #}
+    <div class="page-break">
+        <img src="/files/btm.jpg" style="width: 200px; height: 200px;" alt="logo of African Gypsum">
+        <div class="orders">
+                <div>
+                    <h5>Order No :{{ doc.sales_order_no or '_____________________' }}</h5>
+                    <h5>Customer Name :{{ doc.customer_name or '_____________________' }}</h5>
+                    <h5>FS No :{{ doc.fs_no or '_____________________' }}</h5>
+                </div>
+                <div>
+                    <h5>Coupon No :{{ row.coupon_no or '_____________________' }}</h5>
+                    <h5>Order Date :{{ doc.transaction_date or '_____________________' }}</h5>
+                 </div>
+        </div>
+        
+        <div class="barcode">
+            <div></div>
+            <svg  class="barcode-svg" style="width:200;height:80;"></svg>
+        </div>
+
+            <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th>Sr</th>
+                            <th>Item No</th>
+                            <th>Item Name</th>
+                            <th>Uom</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">unit price</th>
+                            <th class="text-right">Amount</th>
+                            <th class="text-right">Driver Name</th>
+                            <th class="text-right">Plate No</th>
+                        </tr>
+            
+                        <tr>
+                            <td >{{ row.idx }}</td>
+                            <td>{{ row.item}}</td>
+                            <td>{{ row.description}}</td>
+                            <td ><div style="border: 0px;">{{ row.uom }}</div></td>
+                            <td >{{ row.quantity }}</td>
+                            <td >{{row.unit_price}}</td>
+                            <td >{{row.amount}}</td>
+                            <td >{{row.driver_name}}</td>
+                            <td>{{row.plate_no}}</td>
+                        </tr>
+                    </tbody>
+                 </table>
+        <div class="driver">
+             <h5 style="padding-left:100px;">Signature {{doc.signature or "___________________"}}</h5>
+        </div>
+    </div>
+{% endfor %}
+
+<script>
+     var couponArray = {{ couponNumbers | tojson | safe }};
+    // Initialize barcodes after the loop to ensure all elements are rendered
+    var barcodeElements = document.querySelectorAll('.barcode-svg');
+    barcodeElements.forEach(function(element, index) {
+        var barcodeValue = couponArray[index] || 'No Coupon';  // Access barcode data from the corresponding row or use a default value
+        JsBarcode(element, barcodeValue, {
+            format: "CODE128",
+            displayValue: false,
+            background: "#FFFFFF",
+            lineColor: "#000"
+        });
+    });
+</script>

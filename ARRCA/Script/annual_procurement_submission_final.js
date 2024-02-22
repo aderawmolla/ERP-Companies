@@ -6,7 +6,7 @@ frappe.ui.form.on("Annual Procurement Request and permission Final", {
             args: {
                 doctype: 'Annual procurement request submission',
                 filters: {
-                    budget_year: frm.doc.budget_amet,
+                    "budget_year": frm.doc.budget_amet,"maintenance_office":frm.doc.office
                 },
                 fields: ['name', "type_of_material", "total_sum"]
             },
@@ -59,7 +59,7 @@ frappe.ui.form.on("Annual Procurement Request and permission Final", {
                                             child.total = responseMessages.total
                                             child.rate = responseMessages.rate
                                             child.total_cost = responseMessages.total_cost
-                                            child.medeb = type
+                                            child.medeb = responseMessages.medeb
                                         }
                                         frm.set_value("total_sum", all_cost);
                                         frm.refresh_field("total_sum");

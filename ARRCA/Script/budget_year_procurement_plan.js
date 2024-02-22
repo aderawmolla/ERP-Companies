@@ -31,5 +31,5 @@ frappe.ui.form.on("Budget Year Procurement Plan", {
                                 }
                             }
                         });
-                    }    
+             }    
 });
