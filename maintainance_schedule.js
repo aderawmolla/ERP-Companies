@@ -4,8 +4,8 @@ cur_frm.add_fetch("item_code", "stock_uom", "uom");
 cur_frm.add_fetch("item_code", "location", "location");
 
 
-frappe.ui.form.on('Maintenance Schedule', {
 
+frappe.ui.form.on('Maintenance Schedule', {
 	po_no: function(frm) {
 		if (frm.doc.po_no) {
 			frm.clear_table('items_from_purchase_order');

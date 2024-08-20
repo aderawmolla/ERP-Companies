@@ -25,12 +25,11 @@ cur_frm.add_fetch ('item_code', 'item_name', 'item_name');
 cur_frm.add_fetch ('item_code', 'stock_uom', 'uom');
 cur_frm.add_fetch ('item_code', 'location', 'location');
 
-//onload for maintenance work order
 frappe.ui.form.on ('Maintenance Work order', {
     onload: function (frm, cdt, cdn) {
         print("excute this please");
        if(frm.doc.from_date_gc && frm.doc.serial_or_plate_no && frm.doc.docstatus==0 ){
-        var child = locals[cdt][cdn];
+          var child = locals[cdt][cdn];
           var plat_no = frm.doc.serial_or_plate_no;
         //   var technician_name = child.technician_name;
           var date_ec = frm.doc.date_ec;
@@ -51,6 +50,10 @@ frappe.ui.form.on ('Maintenance Work order', {
             callback: function (response) {
               if (response.message.length > 0) {
                 console.log ('response', response.message);
+                if(frm.doc.replaced_part_and_labor_cost_summary){
+                  frm.doc.replaced_part_and_labor_cost_summary=[];
+                }
+
                 response.message.forEach (function (stockEntry) {
                   frappe.call ({
                     method: 'frappe.client.get_list',
@@ -75,7 +78,7 @@ frappe.ui.form.on ('Maintenance Work order', {
                             detail.item_name;
                           rowTable.uom = detail.uom;
                           rowTable.qty = detail.qty;
-                          rowTable.cost_summary_type = detail.rate;
+                          rowTable.cost_summary_type=detail.basic_rate
                           rowTable.cost_summary_birr = detail.amount;
                           frm.refresh_field (
                             'replaced_part_and_labor_cost_summary'

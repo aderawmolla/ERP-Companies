@@ -641,10 +641,10 @@ def make_delivery_note_of_loading(source_name, target_doc=None, skip_item_mappin
 
 
 	def update_item(source, target, source_parent):
-		target.base_amount = flt(source.qtybulk_in_ton) * flt(source.rate)
-		target.amount = flt(source.qtybulk_in_ton) * flt(source.rate)
-		target.qty = flt(source.qtybulk_in_ton)
-
+		target.base_amount = flt(source.qtybags) * flt(source.rate)
+		target.amount = flt(source.qtybags) * flt(source.rate)
+		target.qty = flt(source.qtybags)
+                
 		item = get_item_defaults(target.item_code, source_parent.company)
 		item_group = get_item_group_defaults(target.item_code, source_parent.company)
 		if item:
