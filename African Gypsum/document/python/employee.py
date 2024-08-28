@@ -445,7 +445,7 @@ def create_leave_assignment(employee, from_date=None, to_date=None):
     doc= frappe.get_doc('Leave Policy Assignment',leave_assignment.name)
     
     return doc
-
+# custom code written by Aderaw
 @frappe.whitelist()
 def create_leave_allocation(employee, from_date=None, to_date=None):
     # If assignment doesn't exist, create a new one with default values
@@ -456,11 +456,15 @@ def create_leave_allocation(employee, from_date=None, to_date=None):
     leave_allocation.leave_type = "Annual Leave"
     leave_allocation.from_date = from_date or emp.date_of_joining 
     leave_allocation.to_date = to_date
+    leave_allocation.new_leaves_allocated ="13.0" 
+    leave_allocation.total_leaves_allocated="13.0"
     leave_allocation.employee= employee 
     leave_allocation.insert()
     leave_allocation.submit()
     
     return leave_allocation.name
+
+	
 def get_all_employee_emails(company):
 	'''Returns list of employee emails either based on user_id or company_email'''
 	employee_list = frappe.get_all('Employee',

@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
-
+# make_delivery_note_of_loading
+# update_delivery_status
+# make_delivery_note
 from __future__ import unicode_literals
 import frappe
 import json
@@ -337,7 +339,7 @@ class SalesOrder(SellingController):
 
 	def update_delivery_status(self):
 		"""Update delivery status from Purchase Order for drop shipping"""
-		tot_qty, delivered_qty = 0.0, 0.0
+		tot_qty, delivered_qty= 0.0,0.0
 
 		for item in self.items:
 			if item.delivered_by_supplier:
@@ -354,10 +356,15 @@ class SalesOrder(SellingController):
 
 			delivered_qty += item.delivered_qty
 			tot_qty += item.qty
-
+			remaining_qty = tot_qty - item.delivered_qty
+			item.db_set("remaining_qty", flt(remaining_qty), update_modified=False)
+			item.reload()
 		if tot_qty != 0:
 			self.db_set("per_delivered", flt(delivered_qty/tot_qty) * 100,
 				update_modified=False)
+				
+		frappe.db.commit()
+	
 
 
 	def set_indicator(self):
@@ -573,11 +580,12 @@ def make_delivery_note(source_name, target_doc=None, skip_item_mapping=False):
 
 		if target.company_address:
 			target.update(get_fetch_values("Delivery Note", 'company_address', target.company_address))
-
+     
 	def update_item(source, target, source_parent):
 		target.base_amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.base_rate)
 		target.amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.rate)
 		target.qty = flt(source.qty) - flt(source.delivered_qty)
+        # added by ad
 
 		item = get_item_defaults(target.item_code, source_parent.company)
 		item_group = get_item_group_defaults(target.item_code, source_parent.company)
