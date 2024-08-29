@@ -8,7 +8,7 @@ SELECT
   mri.item_code              AS	 "Item No:Link/Item",	
   mri.description           AS	"Description",	
   mri.uom                AS	 "UOM",
-  mri.qty                 AS	"Requested Qty On Purchase Request",
+  pri.qty                 AS	"Requested Qty On Purchase Request",
    lp.rate                   AS	"Request Item Last Unit Price",
   po.assigned_purchaser_code     AS	"Assigned Purchaser Code",	
     sq.name                AS 	"Purchase Quote No",
@@ -49,4 +49,6 @@ LEFT JOIN `tabPurchase Order` po ON po.purchase_request_no = mr.name
 LEFT JOIN `tabPurchase Order Item` poi ON po.name = poi.parent
 LEFT JOIN `tabPurchase Receipt` prt ON prt.purchase_order = po.name
 LEFT JOIN `tabPurchase Receipt Item` prti ON prt.name = prti.parent
+WHERE  
+    pr.transaction_date >= %(from_date)s AND pr.transaction_date <= %(to_date)s
 -- WHERE mr.material_request_type = 'Purchase'

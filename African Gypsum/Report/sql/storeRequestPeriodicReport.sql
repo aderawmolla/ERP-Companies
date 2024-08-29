@@ -54,6 +54,8 @@ LEFT JOIN `tabPurchase Order` po ON po.purchase_request_no = mr.name
 LEFT JOIN `tabPurchase Order Item` poi ON po.name = poi.parent
 LEFT JOIN `tabPurchase Receipt` prt ON prt.purchase_order = po.name
 LEFT JOIN `tabPurchase Receipt Item` prti ON prt.name = prti.parent
+WHERE  
+    mr.transaction_date >= %(from_date)s AND mr.transaction_date <= %(to_date)s
 -- WHERE mr.material_request_type = 'Purchase'
 GROUP BY
   mr.name,

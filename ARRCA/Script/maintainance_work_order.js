@@ -28,7 +28,7 @@ cur_frm.add_fetch ('item_code', 'location', 'location');
 frappe.ui.form.on ('Maintenance Work order', {
     onload: function (frm, cdt, cdn) {
         print("excute this please");
-       if(frm.doc.from_date_gc && frm.doc.serial_or_plate_no && frm.doc.docstatus==0 ){
+       if(frm.doc.from_date_gc && frm.doc.serial_or_plate_no && frm.doc.docstatus==0){
           var child = locals[cdt][cdn];
           var plat_no = frm.doc.serial_or_plate_no;
         //   var technician_name = child.technician_name;
@@ -42,7 +42,8 @@ frappe.ui.form.on ('Maintenance Work order', {
                 plate_no: plat_no,
                 // transfer_no: technician_name,
                 posting_date: 
-                   ['>=', date]
+                   ['>=', date],
+                  docstatus: 1,
                 
               },
               fields: ['name'],

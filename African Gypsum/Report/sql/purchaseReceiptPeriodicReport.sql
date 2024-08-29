@@ -25,5 +25,7 @@ FROM
 LEFT JOIN `tabPurchase Order` po ON po.name = prt.purchase_order
 LEFT JOIN `tabPurchase Receipt Item` prti ON prt.name = prti.parent
 LEFT JOIN `tabPurchase Order Item` poi ON poi.item_code= prti.item_code
+WHERE  
+    prt.delivery_date >= %(from_date)s AND prt.delivery_date <= %(to_date)s
 GROUP BY
 prt.name,prt.delivery_date,prti.item_code;
