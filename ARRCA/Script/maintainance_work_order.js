@@ -27,9 +27,16 @@ cur_frm.add_fetch ('item_code', 'location', 'location');
 
 frappe.ui.form.on ('Maintenance Work order', {
     onload: function (frm, cdt, cdn) {
-        print("excute this please");
+      // this is called again when date_ec is changed
+      fetchDocs(frm);
+       
+    }
+    // 
+  });
+  
+  function fetchDocs(frm){
+    print("excute this please");
        if(frm.doc.from_date_gc && frm.doc.serial_or_plate_no && frm.doc.docstatus==0){
-          var child = locals[cdt][cdn];
           var plat_no = frm.doc.serial_or_plate_no;
         //   var technician_name = child.technician_name;
           var date_ec = frm.doc.date_ec;
@@ -91,20 +98,17 @@ frappe.ui.form.on ('Maintenance Work order', {
                   });
                 });
               } else {
+                if(frm.doc.replaced_part_and_labor_cost_summary){
+                  frm.doc.replaced_part_and_labor_cost_summary=[];
+                }
                 frappe.show_alert (
-                  `There is no Stock Entry(ሞዴል 22) which has plate no: ${plat_no}, technician name: ${technician_name} and date: ${date_ec}`
+                  `There is no Stock Entry(ሞዴል 22) which has plate no: ${plat_no} and date: ${date_ec}`
                 );
               }
             },
           });
-        
-
        }
-    },
-   
-  });
-  
-
+  }
 
 
 //calculate the labor cost
@@ -545,6 +549,7 @@ frappe.ui.form.on ('work done', {
       var date = convertDateTOGC (frm.doc.date_ec.toString ());
       frm.set_value ('date', date);
       frm.refresh_field ('date');
+      // this is to fetch from stock entry document
     }
   },
 });
@@ -558,6 +563,8 @@ frappe.ui.form.on ('Maintenance Work order', {
       var formattedDate = dateObject.toISOString ().slice (0, 10); // YYYY-MM-DD
       frm.set_value ('from_date_gc', formattedDate);
       frm.refresh_field ('from_date_gc');
+      fetchDocs(frm);
+
     }
   },
   date: function (frm) {
