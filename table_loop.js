@@ -1,4 +1,4 @@
-  frm.doc.technical_result = [];
+                frm.doc.technical_result = [];
                 var cards = response.message;
                 console.log("the response message", cards);
                 if (cards) {

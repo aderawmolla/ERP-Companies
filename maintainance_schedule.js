@@ -2,9 +2,6 @@ cur_frm.add_fetch("item_code", "item_name", "item_name");
 cur_frm.add_fetch("item_code", "description", "description");
 cur_frm.add_fetch("item_code", "stock_uom", "uom");
 cur_frm.add_fetch("item_code", "location", "location");
-
-
-
 frappe.ui.form.on('Maintenance Schedule', {
 	po_no: function(frm) {
 		if (frm.doc.po_no) {

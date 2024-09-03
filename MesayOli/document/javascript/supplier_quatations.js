@@ -9,8 +9,6 @@ frappe.ui.form.on('Supplier Quotation', {
                         target_row.description = source_row.description;
                         target_row.qty = source_row.qty;
                         target_row.warehouse = source_row.warehouse;
-
-
                 });
 
                 frm.refresh_field('items');
@@ -21,13 +19,9 @@ frappe.ui.form.on('Supplier Quotation', {
 });
 
 frappe.ui.form.on('Transfer Order', {
-
     store_request_no: function (frm) {
-
         if (frm.doc.store_request_no) {
-
             frm.clear_table('item');
-
             frappe.model.with_doc('Material Request', frm.doc.store_request_no, function () {
 
                 let source_doc = frappe.model.get_doc('Material Request', frm.doc.store_request_no);

@@ -419,11 +419,8 @@ frappe.ui.form.on('Stock Entry', {
             frm.clear_table('items');
 
             frappe.model.with_doc('Fuel Request for Equipment Form', frm.doc.fuel_request_no, function () {
-                
                 let source_doc = frappe.model.get_doc('Fuel Request for Equipment Form', frm.doc.fuel_request_no);
-
                 $.each(source_doc.items, function (index, source_row) {
-
                 const target_row = frm.add_child('items');	
                 target_row.item_category = source_row.serial_no;
                 target_row.item_code= source_row.item_code; 
@@ -433,7 +430,6 @@ frappe.ui.form.on('Stock Entry', {
                 target_row.basic_rate = source_row.rate;
                 target_row.basic_amount = source_row.amount;
                 });
-
                 frm.refresh_field('items');
             });
         }
@@ -444,6 +440,6 @@ frappe.ui.form.on('Stock Entry', {
 frappe.ui.form.on("Stock Entry Detail", {
       qty: function(frm, cdt, cdn) {
         var d = locals[cdt][cdn];
-                frappe.model.set_value(d.doctype, d.name, 'transfer_qty', (d.qty * 1));   
+        frappe.model.set_value(d.doctype, d.name, 'transfer_qty', (d.qty * 1));   
     }
 });
