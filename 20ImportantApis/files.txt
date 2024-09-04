@@ -1,0 +1,4 @@
+	frappe.local.login_manager.logout()
+    /home/frappe/frappe-bench/apps/frappe/frappe/model 
+           -workflow
+           -
