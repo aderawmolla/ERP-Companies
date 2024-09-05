@@ -2,9 +2,7 @@
 frappe.ui.form.on("Guarantee Record", {
     total_amount: function (frm, cdt, cdn) {
         var d = locals[cdt][cdn];
-
         frappe.model.set_value(d.doctype, d.name, 'guarantee_amount', (d.total_amount * d.percent * 0.01));
-
     }
 });
 

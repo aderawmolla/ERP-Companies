@@ -9,9 +9,9 @@ frappe.ui.form.on('Purchase Receipt', {
 
                 $.each(source_doc.table_9, function (index, source_row) {
 
-                    const target_row = frm.add_child('items');	
-                    target_row.item_code= source_row.item_code; 
-                    target_row.schedule_date= source_row.schedule_date;
+                    const target_row = frm.add_child('items');
+                    target_row.item_code = source_row.item_code;
+                    target_row.schedule_date = source_row.schedule_date;
                     target_row.qty = source_row.qty;
                     target_row.uom = source_row.uom;
                     target_row.rate = source_row.rate;
@@ -30,12 +30,12 @@ frappe.ui.form.on('Purchase Receipt', {
     },
 });
 
-        cur_frm.add_fetch('prepared_by', 'employee_name', 'approver_name');
-        cur_frm.add_fetch('checked_by', 'employee_name', 'checked_by_name');
-        cur_frm.add_fetch('authorized_by', 'employee_name', 'authorized_by_name');
-        
-       frappe.ui.form.on('Purchase Receipt', { 
-            grand_total: function (frm) {
+cur_frm.add_fetch('prepared_by', 'employee_name', 'approver_name');
+cur_frm.add_fetch('checked_by', 'employee_name', 'checked_by_name');
+cur_frm.add_fetch('authorized_by', 'employee_name', 'authorized_by_name');
+
+frappe.ui.form.on('Purchase Receipt', {
+    grand_total: function (frm) {
         var inFigureValue = parseFloat(frm.doc.grand_total);
         var hasCents = inFigureValue % 1 !== 0;
 
@@ -76,14 +76,15 @@ frappe.ui.form.on('Purchase Receipt', {
             var centsWord = numberToWords(centsValue) + " Cents";
             frm.set_value('grand_total_amount_in_word', inWordValue + " and " + centsWord);
         }
-    }});
-    
+    }
+});
+
 
 frappe.ui.form.on('Purchase Receipt', {
-    refresh: function(frm) {
+    refresh: function (frm) {
         // Custom display logic here
         let field_value = frm.doc.workflow_state;
-        
+
         // Display the field value in the toolbar
         frm.dashboard.set_headline(
             __('Approval State: {0}', [field_value])
@@ -96,7 +97,7 @@ frappe.ui.form.on('Purchase Receipt', {
 var prNoArray = []; // Add this line to create an array to store pr_no values
 
 frappe.ui.form.on('Pr No 2', {
-    pr_no: function(frm, cdt, cdn) {
+    pr_no: function (frm, cdt, cdn) {
         var child = locals[cdt][cdn];
         if (child.pr_no && prNoArray.includes(child.pr_no)) {
             frappe.throw({
@@ -106,12 +107,12 @@ frappe.ui.form.on('Pr No 2', {
             frappe.model.clear_doc(cdt, cdn);
         } else {
             prNoArray.push(child.pr_no);
-            frappe.model.with_doc('Purchase Requisition', child.pr_no, function() {
+            frappe.model.with_doc('Purchase Requisition', child.pr_no, function () {
                 let source_doc = frappe.model.get_doc('Purchase Requisition', child.pr_no);
-                $.each(source_doc.table_9, function(index, source_row) {
+                $.each(source_doc.table_9, function (index, source_row) {
                     const target_row = frm.add_child('items');
-                    target_row.item_code= source_row.item_code; 
-                    target_row.schedule_date= source_row.schedule_date;
+                    target_row.item_code = source_row.item_code;
+                    target_row.schedule_date = source_row.schedule_date;
                     target_row.qty = source_row.qty;
                     target_row.uom = source_row.uom;
                     target_row.rate = source_row.rate;

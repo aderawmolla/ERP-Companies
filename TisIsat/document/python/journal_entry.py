@@ -82,18 +82,19 @@ class JournalEntry(AccountsController):
 				"inter_company_journal_entry_reference", self.name)
 
 	def on_cancel(self):
-		from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
-		from erpnext.hr.doctype.salary_slip.salary_slip import unlink_ref_doc_from_salary_slip
-		unlink_ref_doc_from_payment_entries(self)
-		unlink_ref_doc_from_salary_slip(self.name)
-		self.make_gl_entries(1)
-		self.update_advance_paid()
-		self.update_expense_claim()
-		self.update_loan()
-		self.unlink_advance_entry_reference()
-		self.unlink_asset_reference()
-		self.unlink_inter_company_jv()
-		self.unlink_asset_adjustment_entry()
+		pass
+		# from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
+		# from erpnext.hr.doctype.salary_slip.salary_slip import unlink_ref_doc_from_salary_slip
+		# unlink_ref_doc_from_payment_entries(self)
+		# unlink_ref_doc_from_salary_slip(self.name)
+		# self.make_gl_entries(1)
+		# self.update_advance_paid()
+		# self.update_expense_claim()
+		# self.update_loan()
+		# self.unlink_advance_entry_reference()
+		# self.unlink_asset_reference()
+		# self.unlink_inter_company_jv()
+		# self.unlink_asset_adjustment_entry()
 	
 	
 	def unlink_advance_entry_reference(self):
