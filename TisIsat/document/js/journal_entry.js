@@ -31,17 +31,26 @@ frappe.ui.form.on("Journal Entry", {
 		}
         if(frm.doc.docstatus==1) {
 			frm.add_custom_button(__('Cancel Document'), function() {
-                frappe.call({
-					method: "erpnext.accounts.doctype.journal_entry.journal_entry.cancelJournal",
-					args:{
-						"name":frm.doc.name
+				frappe.confirm(
+					'Are you sure you want to cancel this journal entry?',
+					function() {
+						// User confirmed, proceed to cancel
+						frappe.call({
+							method: 'erpnext.accounts.doctype.journal_entry.journal_entry.cancelJournal',
+							args: {
+								name: frm.doc.name
+							},
+							callback: function(response) {
+								frappe.msgprint(response.message);
+								frm.reload_doc();
+							}
+						});
 					},
-
-					callback: function(r) {
-                        return r
+					function() {
+						// User declined, do nothing
+						frappe.msgprint('Journal Entry cancellation aborted.');
 					}
-				});
-	// return erpnext.journal_entry.reverse_journal_entry(frm);
+				);
 			});
 		}
 

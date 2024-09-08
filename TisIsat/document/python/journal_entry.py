@@ -10,7 +10,7 @@ from erpnext.accounts.utils import get_balance_on, get_account_currency
 from erpnext.accounts.party import get_party_account
 from erpnext.hr.doctype.expense_claim.expense_claim import update_reimbursed_amount
 from erpnext.hr.doctype.loan.loan import update_disbursement_status, update_total_amount_paid
-
+import pymysql
 from six import string_types, iteritems
 
 class JournalEntry(AccountsController):
@@ -82,21 +82,19 @@ class JournalEntry(AccountsController):
 				"inter_company_journal_entry_reference", self.name)
 
 	def on_cancel(self):
-		pass
-		# from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
-		# from erpnext.hr.doctype.salary_slip.salary_slip import unlink_ref_doc_from_salary_slip
-		# unlink_ref_doc_from_payment_entries(self)
-		# unlink_ref_doc_from_salary_slip(self.name)
-		# self.make_gl_entries(1)
-		# self.update_advance_paid()
-		# self.update_expense_claim()
-		# self.update_loan()
-		# self.unlink_advance_entry_reference()
-		# self.unlink_asset_reference()
-		# self.unlink_inter_company_jv()
-		# self.unlink_asset_adjustment_entry()
-	
-	
+		from erpnext.accounts.utils import unlink_ref_doc_from_payment_entries
+		from erpnext.hr.doctype.salary_slip.salary_slip import unlink_ref_doc_from_salary_slip
+		unlink_ref_doc_from_payment_entries(self)
+		unlink_ref_doc_from_salary_slip(self.name)
+		self.make_gl_entries(1)
+		self.update_advance_paid()
+		self.update_expense_claim()
+		self.update_loan()
+		self.unlink_advance_entry_reference()
+		self.unlink_asset_reference()
+		self.unlink_inter_company_jv()
+		self.unlink_asset_adjustment_entry()
+
 	def unlink_advance_entry_reference(self):
 		for d in self.get("accounts"):
 			if d.is_advance == "Yes" and d.reference_type in ("Sales Invoice", "Purchase Invoice"):
@@ -105,8 +103,6 @@ class JournalEntry(AccountsController):
 				d.reference_type = ''
 				d.reference_name = ''
 				d.db_update()
-
-   
 
 	def unlink_asset_reference(self):
 		for d in self.get("accounts"):
@@ -962,24 +958,34 @@ def make_inter_company_journal_entry(name, voucher_type, company):
 	journal_entry.inter_company_journal_entry_reference = name
 	return journal_entry.as_dict()
 
+
 @frappe.whitelist()
 def cancelJournal(name):
-		if name:
-			journal = frappe.get_doc('Journal Entry',name)
-			
-			# Find all linked Delivery Notes
-			# linked_delivery_notes = frappe.get_all(
-			# 	'Delivery Note', 
-			# 	filters={'loading_advice': self.loading_advice},
-			# 	fields=['name']
-			# )
-		
-			# Unlink Loading Advice from all linked Delivery Notes
-			# for dn in linked_delivery_notes:
-			# 	dn_doc = frappe.get_doc('Delivery Note', dn.name)
-			# 	dn_doc.db_set('loading_advice', None)
-
-			# Cancel and Delete the Loading Advice document
-			if journal.docstatus == 1:  # Check if the document is submitted
-					 journal.docstatus = 2  # Change the status to 0 (Draft)
-					 journal.save()  # Save the document with the new status
+    try:
+        # Check if the Journal Entry exists and is in 'Submitted' status (docstatus = 1)
+        journal_entry = frappe.db.sql("""
+            SELECT name FROM `tabJournal Entry`
+            WHERE name = %s AND docstatus = 1
+        """, (name,), as_dict=True)
+        
+        if journal_entry:
+            # Prepare the SQL query to update the docstatus to 2 (Cancelled)
+            sql = """
+                UPDATE `tabJournal Entry`
+                SET docstatus = 2
+                WHERE name = %s AND docstatus = 1;
+            """
+            
+            # Execute the SQL query with the journal entry ID
+            frappe.db.sql(sql, (name,))
+            
+            # Commit the transaction to the database
+            frappe.db.commit()
+            
+            # frappe.msgprint("Journal Entry '{}' has been cancelled successfully.".format(name))
+        else:
+            frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
+    
+    except Exception as e:
+        frappe.log_error(message=str(e), title="Error updating Journal Entry docstatus")
+        frappe.msgprint("Error: {}".format(e))
