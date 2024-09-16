@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
-
+# 01346
+# 01448
 from __future__ import unicode_literals
 import frappe, erpnext, json
 from frappe.utils import cstr, flt, fmt_money, formatdate, getdate, nowdate, cint
@@ -969,7 +970,7 @@ def cancelJournal(name):
         """, (name,), as_dict=True)
         
         if journal_entry:
-            # Prepare the SQL query to update the docstatus to 2 (Cancelled)
+           
             sql = """
                 UPDATE `tabJournal Entry`
                 SET docstatus = 2
@@ -979,13 +980,93 @@ def cancelJournal(name):
             # Execute the SQL query with the journal entry ID
             frappe.db.sql(sql, (name,))
             
-            # Commit the transaction to the database
+            # Delete all entries in tabDepreciation Schedule associated with the Journal Entry
+            delete_sql = """
+                DELETE FROM `tabDepreciation Schedule`
+                WHERE parent = %s;
+            """
+            frappe.db.sql(delete_sql, (name,))
+            
+            # Commit both changes to the database
             frappe.db.commit()
             
-            # frappe.msgprint("Journal Entry '{}' has been cancelled successfully.".format(name))
+            frappe.msgprint("Journal Entry '{}' has been cancelled and associated Depreciation Schedules deleted.".format(name))
         else:
             frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
     
     except Exception as e:
-        frappe.log_error(message=str(e), title="Error updating Journal Entry docstatus")
+        frappe.log_error(message=str(e), title="Error cancelling Journal Entry and deleting Depreciation Schedules")
+        frappe.msgprint("Error: {}".format(e))
+
+
+@frappe.whitelist()
+def cancelJournal(name):
+    try:
+        # Check if the Journal Entry exists and is in 'Submitted' status (docstatus = 1)
+        journal_entry_doc = frappe.get_doc('Journal Entry', name)
+        
+        if journal_entry_doc.docstatus == 1:  # Submitted status
+            # Initialize the JournalEntry object and handle cancellation
+            journal_entry = frappe.get_doc("Journal Entry", name)
+            journal_entry.on_cancel()  # Call on_cancel to handle related document updates
+            
+            # Execute a query to check if the Journal Entry exists with docstatus 1 (Submitted)
+            journal_entry_check = frappe.db.sql("""
+                SELECT name FROM `tabJournal Entry`
+                WHERE name = %s AND docstatus = 1
+            """, (name,), as_dict=True)
+        
+            if journal_entry_check:
+                # Prepare the SQL query to update the docstatus to 2 (Cancelled)
+                sql = """
+                    UPDATE `tabJournal Entry`
+                    SET docstatus = 2
+                    WHERE name = %s AND docstatus = 1;
+                """
+                
+                # Execute the SQL query with the journal entry ID
+                frappe.db.sql(sql, (name,))
+                
+                # Commit the changes to the database
+                frappe.db.commit()
+                
+                frappe.msgprint("Journal Entry '{}' has been cancelled and related documents have been updated.".format(name))
+            else:
+                frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
+        else:
+            frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
+    
+    except Exception as e:
+        frappe.log_error(message=str(e), title="Error cancelling Journal Entry")
+        frappe.msgprint("Error: {}".format(e))  # Replaced f-string with .format() for Python 2.7 compatibility
+
+
+@frappe.whitelist()
+def deleteJournal(name):
+    try:
+        # Check if the Journal Entry exists
+        journal_entry = frappe.db.sql("""
+            SELECT name FROM `tabJournal Entry`
+            WHERE name = %s
+        """, (name,), as_dict=True)
+        
+        if journal_entry:
+            # Prepare the SQL query to delete the Journal Entry
+            sql = """
+                DELETE FROM `tabJournal Entry`
+                WHERE name = %s;
+            """
+            
+            # Execute the SQL query to delete the journal entry
+            frappe.db.sql(sql, (name,))
+            
+            # Commit the transaction to the database
+            frappe.db.commit()
+            
+            frappe.msgprint("Journal Entry '{}' has been deleted successfully.".format(name))
+        else:
+            frappe.msgprint("Journal Entry '{}' was not found.".format(name))
+    
+    except Exception as e:
+        frappe.log_error(message=str(e), title="Error deleting Journal Entry")
         frappe.msgprint("Error: {}".format(e))

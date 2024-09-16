@@ -45,9 +45,55 @@ frappe.ui.form.on('Asset', {
 		frappe.ui.form.trigger("Asset", "is_existing_asset");
 		frm.toggle_display("next_depreciation_date", frm.doc.docstatus < 1);
 		frm.events.make_schedules_editable(frm);
+         if(frm.doc.docstatus==2){
+			frm.add_custom_button(__('Delete Document'), function() {
+				frappe.confirm(
+					'Are you sure you want to Delete this Asset?',
+					function() {
+						// User confirmed, proceed to cancel
+						frappe.call({
+							method: 'erpnext.assets.doctype.asset.asset.deleteAsset',
+							args: {
+								name: frm.doc.name
+							},
+							callback: function(response) {
+								frappe.msgprint(response.message);
+								frm.reload_doc();
+							}
+						});
+					},
+					function() {
+						// User declined, do nothing
+						frappe.msgprint('Asset Deletion aborted.');
+					}
+				);
+			});
 
+		 }
 		if (frm.doc.docstatus==1) {
 			if (in_list(["Submitted", "Partially Depreciated", "Fully Depreciated"], frm.doc.status)) {
+                frm.add_custom_button(__('Cancel Document'), function() {
+					frappe.confirm(
+						'Are you sure you want to cancel this Asset?',
+						function() {
+							// User confirmed, proceed to cancel
+							frappe.call({
+								method: 'erpnext.assets.doctype.asset.asset.cancelAsset',
+								args: {
+									name: frm.doc.name
+								},
+								callback: function(response) {
+									frappe.msgprint(response.message);
+									frm.reload_doc();
+								}
+							});
+						},
+						function() {
+							// User declined, do nothing
+							frappe.msgprint('Asset cancellation aborted.');
+						}
+					);
+				});
 				frm.add_custom_button("Transfer Asset", function() {
 					erpnext.asset.transfer_asset(frm);
 				});
@@ -59,6 +105,7 @@ frappe.ui.form.on('Asset', {
 				frm.add_custom_button("Sell Asset", function() {
 					frm.trigger("make_sales_invoice");
 				});
+				
 
 			} else if (frm.doc.status=='Scrapped') {
 				frm.add_custom_button("Restore Asset", function() {

@@ -596,3 +596,65 @@ def make_journal_entry(asset_name):
 
 def is_cwip_accounting_disabled():
 	return cint(frappe.db.get_single_value("Asset Settings", "disable_cwip_accounting"))
+
+
+@frappe.whitelist()
+def cancelAsset(name):
+    try:
+        # Check if the Journal Entry exists and is in 'Submitted' status (docstatus = 1)
+        journal_entry = frappe.db.sql("""
+            SELECT name FROM `tabAsset`
+            WHERE name = %s AND docstatus = 1
+        """, (name,), as_dict=True)
+        
+        if journal_entry:
+            # Prepare the SQL query to update the docstatus to 2 (Cancelled)
+            sql = """
+                UPDATE `tabAsset`
+                SET docstatus = 2
+                WHERE name = %s AND docstatus = 1;
+            """
+            
+            # Execute the SQL query with the journal entry ID
+            frappe.db.sql(sql, (name,))
+            
+            # Commit the transaction to the database
+            frappe.db.commit()
+            
+            # frappe.msgprint("Journal Entry '{}' has been cancelled successfully.".format(name))
+        else:
+            frappe.msgprint("Asset '{}' was not found or is already cancelled.".format(name))
+    
+    except Exception as e:
+        frappe.log_error(message=str(e), title="Error updating Asset docstatus")
+        frappe.msgprint("Error: {}".format(e))
+
+@frappe.whitelist()
+def deleteAsset(name):
+    try:
+        # Check if the Asset exists
+        asset = frappe.db.sql("""
+            SELECT name FROM `tabAsset`
+            WHERE name = %s
+        """, (name,), as_dict=True)
+        
+        if asset:
+            # Prepare the SQL query to delete the Asset
+            sql = """
+                DELETE FROM `tabAsset`
+                WHERE name = %s;
+            """
+            
+            # Execute the SQL query to delete the asset
+            frappe.db.sql(sql, (name,))
+            
+            # Commit the transaction to the database
+            frappe.db.commit()
+            
+            frappe.msgprint("Asset '{}' has been deleted successfully.".format(name))
+        else:
+            frappe.msgprint("Asset '{}' was not found.".format(name))
+    
+    except Exception as e:
+        frappe.log_error(message=str(e), title="Error deleting Asset")
+        frappe.msgprint("Error: {}".format(e))

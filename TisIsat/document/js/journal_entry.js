@@ -9,26 +9,6 @@ frappe.ui.form.on("Journal Entry", {
 	refresh: function(frm) {
 		erpnext.toggle_naming_series();
 		frm.cscript.voucher_type(frm.doc);
-
-		if(frm.doc.docstatus==1) {
-			frm.add_custom_button(__('Ledger'), function() {
-				frappe.route_options = {
-					"voucher_no": frm.doc.name,
-					"from_date": frm.doc.posting_date,
-					"to_date": frm.doc.posting_date,
-					"company": frm.doc.company,
-					"finance_book": frm.doc.finance_book,
-					"group_by_voucher": 0
-				};
-				frappe.set_route("query-report", "General Ledger");
-			}, "fa fa-table");
-		}
-
-		if(frm.doc.docstatus==1) {
-			frm.add_custom_button(__('Reverse Journal Entry'), function() {
-				return erpnext.journal_entry.reverse_journal_entry(frm);
-			});
-		}
         if(frm.doc.docstatus==1) {
 			frm.add_custom_button(__('Cancel Document'), function() {
 				frappe.confirm(
@@ -53,7 +33,40 @@ frappe.ui.form.on("Journal Entry", {
 				);
 			});
 		}
+        if(frm.doc.docstatus==2) {
+			frm.add_custom_button(__('Delete Document'), function() {
+						frappe.call({
+							method: 'erpnext.accounts.doctype.journal_entry.journal_entry.deleteJournal',
+							args: {
+								name: frm.doc.name
+							},
+							callback: function(response) {
+								frappe.msgprint(response.message);
+								frm.reload_doc();
+							}
+						});
+			});
+		}
+		if(frm.doc.docstatus==1) {
+			frm.add_custom_button(__('Ledger'), function() {
+				frappe.route_options = {
+					"voucher_no": frm.doc.name,
+					"from_date": frm.doc.posting_date,
+					"to_date": frm.doc.posting_date,
+					"company": frm.doc.company,
+					"finance_book": frm.doc.finance_book,
+					"group_by_voucher": 0
+				};
+				frappe.set_route("query-report", "General Ledger");
+			}, "fa fa-table");
+		}
 
+		if(frm.doc.docstatus==1) {
+			frm.add_custom_button(__('Reverse Journal Entry'), function() {
+				return erpnext.journal_entry.reverse_journal_entry(frm);
+			});
+		}
+        
 		if (frm.doc.__islocal) {
 			frm.add_custom_button(__('Quick Entry'), function() {
 				return erpnext.journal_entry.quick_entry(frm);
