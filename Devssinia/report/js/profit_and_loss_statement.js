@@ -3,12 +3,12 @@
 
 
 frappe.require("assets/erpnext/js/financial_statements.js", function() {
-	frappe.query_reports["Profit and Loss Statement"] = $.extend({},
+	frappe.query_reports["Profit and loss Statement Updated"] = $.extend({},
 		erpnext.financial_statements);
 
-	erpnext.utils.add_dimensions('Profit and Loss Statement', 10);
+	erpnext.utils.add_dimensions('Profit and loss Statement Updated', 10);
 
-	frappe.query_reports["Profit and Loss Statement"]["filters"].push(
+	frappe.query_reports["Profit and loss Statement Updated"]["filters"].push(
 		{
 			"fieldname": "project",
 			"label": __("Project"),
