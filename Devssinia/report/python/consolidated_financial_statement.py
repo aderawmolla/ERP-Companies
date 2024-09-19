@@ -50,6 +50,8 @@ def execute(filters=None):
 		data, message, chart, report_summary = get_balance_sheet_data(fiscal_year, companies, columns, filters)
 	elif filters.get('report') == "Profit and Loss Statement":
 		data, message, chart, report_summary = get_profit_loss_data(fiscal_year, companies, columns, filters)
+	elif filters.get('report') == "Profit and loss Statement Updated":
+		data, message, chart, report_summary = get_profit_loss_data(fiscal_year, companies, columns, filters)    
 	else:
 		if cint(frappe.db.get_single_value('Accounts Settings', 'use_custom_cash_flow')):
 			from erpnext.accounts.report.cash_flow.custom_cash_flow import execute as execute_custom

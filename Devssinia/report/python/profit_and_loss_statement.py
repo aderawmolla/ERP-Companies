@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 
-
 import frappe
 from frappe import _
 from frappe.utils import flt
@@ -63,9 +62,15 @@ def get_report_summary(period_list, periodicity, income, expense, net_profit_los
 			net_profit += net_profit_loss.get(key)
 
 	if (len(period_list) == 1 and periodicity== 'Yearly'):
-			profit_label = _("Profit This Year")
 			income_label = _("Total Income This Year")
 			expense_label = _("Total Expense This Year")
+			cost_of_goods_label=_("Cost of Goods Sold This Year")
+			gross_label = _("Gross Profit This Year")
+			profit_label = _("Profit This Year")
+
+
+			
+
 	else:
 		profit_label = _("Net Profit")
 		income_label = _("Total Income")

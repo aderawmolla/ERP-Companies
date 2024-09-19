@@ -70,7 +70,7 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 				"fieldname":"report",
 				"label": __("Report"),
 				"fieldtype": "Select",
-				"options": ["Profit and Loss Statement", "Balance Sheet", "Cash Flow"],
+				"options": ["Profit and Loss Statement", "Balance Sheet", "Cash Flow","Profit and loss Statement Updated"],
 				"default": "Balance Sheet",
 				"reqd": 1
 			},
