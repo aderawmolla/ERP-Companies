@@ -22,7 +22,7 @@
 	{%= frappe.boot.letter_heads[letterhead].header %}
 </div>
 {% } %}
-<h2 class="text-center">{%= __(report.report_name) %}</h2>
+<h2  class="text-center">{%= __(report.report_name) %}</h2>
 <h3 class="text-center">{%= filters.company %}</h3>
 <h3 class="text-center">{%= filters.fiscal_year %}</h3>
 <h5 class="text-center">{%=  __("Currency") %} : {%= filters.presentation_currency || erpnext.get_currency(filters.company) %} </h5>
@@ -63,18 +63,42 @@
 		{% } %}
 	</tbody>
 </table>
-
-<div class="text-center export-button">
-    <button class="btn btn-primary" onclick="exportToExcel()">Ato GETNET Export to Excel</button>
-</div>
+ 
+<div class="container my-5 py-4 shadow-lg rounded bg-light">
+	
+  
+	<!-- Dropdown and Button Section -->
+	<div class="" style="display: flex;flex-direction: row;justify-content: space-around;">
+	  <!-- Dropdown for Report Selection -->
+	  <div class="col-md-6 mb-3">
+		<label for="report" class="form-label h5">Choose Report Type</label>
+		<select id="report" class="form-select form-select-lg border border-primary">
+		  <option selected disabled>Report</option>
+		  <option>Balance Sheet</option>
+		  <option>Profit and Loss Statement</option>
+		  <option>Cashflow</option>
+		</select>
+	  </div>
+  
+	  <!-- Export Button -->
+	  <div class="col-md-6 text-center">
+		<button class="btn btn-primary btn-lg px-5 py-3 shadow" onclick="exportToExcel()">
+		  <i class="fas fa-file-excel mr-2"></i>Export to Excel
+		</button>
+	  </div>
+	</div>
+  </div>
 
 <p class="text-right text-muted">Printed On : {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %}</p>
 
 <script>
 	function exportToExcel() {
+
 		var table = document.getElementById("reportTable");
 		var workbook = XLSX.utils.table_to_book(table, { sheet: "Report" });
-		var excelFileName = "report.xlsx";
+		var reportNameInput = document.getElementById("report");
+		var reportName = reportNameInput.value.trim() || "financial_statement";
+		var excelFileName =reportName + ".xlsx";
 		XLSX.writeFile(workbook, excelFileName);
 	}
 </script>
