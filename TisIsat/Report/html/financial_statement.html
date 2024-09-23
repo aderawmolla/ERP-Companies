@@ -5,18 +5,6 @@
 		frappe.throw(__("Too many columns. Export the report and print it using a spreadsheet application."));
 	}
 
-	// Filter the rows based on grouping or visibility criteria
-	// If the rows you want to exclude are grouped, you may use 'is_group', 'parent_account', or 'indent' fields
-	var visible_data = data.filter(function(row) {
-		// Example 1: Exclude rows with the 'is_group' flag
-		// return !row.is_group;
-
-		// Example 2: Exclude rows that are parent accounts (i.e., only leaf nodes are shown)
-		return !row.parent_account;
-
-		// Example 3: Exclude rows based on indentation (only export leaf accounts)
-		// return row.indent === 0;
-	});
 %}
 
 <style>
