@@ -10,12 +10,11 @@ from past.builtins import cmp
 import functools
 import math
 
-
 import frappe, erpnext
 from erpnext.accounts.report.utils import get_currency, convert_to_presentation_currency
 from erpnext.accounts.utils import get_fiscal_year
 from frappe import _
-from frappe.utils import (flt, getdate, get_first_day, add_months, add_days, formatdate, cstr, cint)
+from frappe.utils import (flt, getdate, get_first_day, add_months, add_days, formatdate, cstr)
 
 from six import itervalues
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions, get_dimension_with_children
