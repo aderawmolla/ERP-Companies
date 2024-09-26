@@ -960,6 +960,7 @@ def make_inter_company_journal_entry(name, voucher_type, company):
 	return journal_entry.as_dict()
 
 
+
 @frappe.whitelist()
 def cancelJournal(name):
     try:
@@ -970,75 +971,42 @@ def cancelJournal(name):
         """, (name,), as_dict=True)
         
         if journal_entry:
-           
+            # Update Journal Entry docstatus to cancelled (docstatus = 2)
             sql = """
                 UPDATE `tabJournal Entry`
                 SET docstatus = 2
                 WHERE name = %s AND docstatus = 1;
             """
-            
-            # Execute the SQL query with the journal entry ID
             frappe.db.sql(sql, (name,))
             
-            # Delete all entries in tabDepreciation Schedule associated with the Journal Entry
+            # Set reference_type and reference_name to NULL in Journal Entry Account table for the associated Journal Entry
+            update_journal_entry_account_sql = """
+                UPDATE `tabJournal Entry Account`
+                SET reference_type = NULL, reference_name = NULL
+                WHERE parent = %s;
+            """
+            frappe.db.sql(update_journal_entry_account_sql, (name,))
+            
+            # Delete all entries in Depreciation Schedule associated with the Journal Entry
             delete_sql = """
                 DELETE FROM `tabDepreciation Schedule`
                 WHERE parent = %s;
             """
             frappe.db.sql(delete_sql, (name,))
             
-            # Commit both changes to the database
+            # Commit all changes to the database
             frappe.db.commit()
             
-            frappe.msgprint("Journal Entry '{}' has been cancelled and associated Depreciation Schedules deleted.".format(name))
+            # Inform the user that the process is complete using .format() method
+            frappe.msgprint("Journal Entry '{}' has been cancelled. Associated references in Journal Entry Account set to NULL and Depreciation Schedules deleted.".format(name))
         else:
+            # Handle the case where the Journal Entry was not found
             frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
     
     except Exception as e:
-        frappe.log_error(message=str(e), title="Error cancelling Journal Entry and deleting Depreciation Schedules")
+        # Log any errors that occur during the process and show the error message
+        frappe.log_error(message=str(e), title="Error cancelling Journal Entry and updating related records")
         frappe.msgprint("Error: {}".format(e))
-
-
-@frappe.whitelist()
-def cancelJournal(name):
-    try:
-        # Check if the Journal Entry exists and is in 'Submitted' status (docstatus = 1)
-        journal_entry_doc = frappe.get_doc('Journal Entry', name)
-        
-        if journal_entry_doc.docstatus == 1:  # Submitted status
-            # Initialize the JournalEntry object and handle cancellation
-            journal_entry = frappe.get_doc("Journal Entry", name)
-            journal_entry.on_cancel()  # Call on_cancel to handle related document updates
-            
-            # Execute a query to check if the Journal Entry exists with docstatus 1 (Submitted)
-            journal_entry_check = frappe.db.sql("""
-                SELECT name FROM `tabJournal Entry`
-                WHERE name = %s AND docstatus = 1
-            """, (name,), as_dict=True)
-        
-            if journal_entry_check:
-                # Prepare the SQL query to update the docstatus to 2 (Cancelled)
-                sql = """
-                    UPDATE `tabJournal Entry`
-                    SET docstatus = 2
-                    WHERE name = %s AND docstatus = 1;
-                """
-                
-                # Execute the SQL query with the journal entry ID
-                frappe.db.sql(sql, (name,))
-                
-                # Commit the changes to the database
-                frappe.db.commit()
-                
-                frappe.msgprint("Journal Entry '{}' has been cancelled and related documents have been updated.".format(name))
-            else:
-                frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
-        else:
-            frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
-    
-    except Exception as e:
-        frappe.log_error(message=str(e), title="Error cancelling Journal Entry")
-        frappe.msgprint("Error: {}".format(e))  # Replaced f-string with .format() for Python 2.7 compatibility
 
 
 @frappe.whitelist()
