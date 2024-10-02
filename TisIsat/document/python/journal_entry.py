@@ -964,77 +964,75 @@ def make_inter_company_journal_entry(name, voucher_type, company):
 @frappe.whitelist()
 def cancelJournal(name):
     try:
-        # Check if the Journal Entry exists and is in 'Submitted' status (docstatus = 1)
-        journal_entry = frappe.db.sql("""
-            SELECT name FROM `tabJournal Entry`
-            WHERE name = %s AND docstatus = 1
-        """, (name,), as_dict=True)
-        
-        if journal_entry:
-            # Update Journal Entry docstatus to cancelled (docstatus = 2)
-            sql = """
+        # Fetch the Journal Entry document
+        journal_entry_doc = frappe.get_doc('Journal Entry', name)
+
+        # Check if the document is in 'Submitted' status (docstatus = 1)
+        if journal_entry_doc.docstatus == 1:
+            # Trigger cancellation of the Journal Entry using the built-in method
+            journal_entry_doc.on_cancel()
+
+            # Update the 'docstatus' to 'Cancelled' (docstatus = 2)
+            frappe.db.sql("""
                 UPDATE `tabJournal Entry`
                 SET docstatus = 2
                 WHERE name = %s AND docstatus = 1;
-            """
-            frappe.db.sql(sql, (name,))
-            
-            # Set reference_type and reference_name to NULL in Journal Entry Account table for the associated Journal Entry
-            update_journal_entry_account_sql = """
+            """, (name,))
+
+            # Set 'reference_type' and 'reference_name' to NULL in related Journal Entry Account records
+            frappe.db.sql("""
                 UPDATE `tabJournal Entry Account`
                 SET reference_type = NULL, reference_name = NULL
                 WHERE parent = %s;
-            """
-            frappe.db.sql(update_journal_entry_account_sql, (name,))
-            
-            # Delete all entries in Depreciation Schedule associated with the Journal Entry
-            delete_sql = """
+            """, (name,))
+
+            # Delete all Depreciation Schedule entries associated with this Journal Entry
+            frappe.db.sql("""
                 DELETE FROM `tabDepreciation Schedule`
                 WHERE parent = %s;
-            """
-            frappe.db.sql(delete_sql, (name,))
-            
+            """, (name,))
+
             # Commit all changes to the database
             frappe.db.commit()
-            
-            # Inform the user that the process is complete using .format() method
-            frappe.msgprint("Journal Entry '{}' has been cancelled. Associated references in Journal Entry Account set to NULL and Depreciation Schedules deleted.".format(name))
-        else:
-            # Handle the case where the Journal Entry was not found
-            frappe.msgprint("Journal Entry '{}' was not found or is already cancelled.".format(name))
-    
-    except Exception as e:
-        # Log any errors that occur during the process and show the error message
-        frappe.log_error(message=str(e), title="Error cancelling Journal Entry and updating related records")
-        frappe.msgprint("Error: {}".format(e))
 
+            # Inform the user about the successful cancellation
+            frappe.msgprint("Journal Entry '{}' has been successfully cancelled. "
+                            "Associated references in Journal Entry Account have been set to NULL and related Depreciation Schedules have been deleted.".format(name))
+        else:
+            # If the Journal Entry is not found or already cancelled
+            frappe.msgprint("Journal Entry '{}' not found or is already cancelled.".format(name))
+
+    except Exception as e:
+        # Log and display the error in case of failure
+        frappe.log_error(message=str(e), title="Error cancelling Journal Entry")
+        frappe.msgprint("Error: {}".format(e))
 
 @frappe.whitelist()
 def deleteJournal(name):
-    try:
-        # Check if the Journal Entry exists
-        journal_entry = frappe.db.sql("""
-            SELECT name FROM `tabJournal Entry`
-            WHERE name = %s
-        """, (name,), as_dict=True)
-        
-        if journal_entry:
-            # Prepare the SQL query to delete the Journal Entry
-            sql = """
-                DELETE FROM `tabJournal Entry`
-                WHERE name = %s;
-            """
-            
-            # Execute the SQL query to delete the journal entry
-            frappe.db.sql(sql, (name,))
-            
-            # Commit the transaction to the database
-            frappe.db.commit()
-            
-            frappe.msgprint("Journal Entry '{}' has been deleted successfully.".format(name))
-        else:
-            frappe.msgprint("Journal Entry '{}' was not found.".format(name))
-    
-    except Exception as e:
-        frappe.log_error(message=str(e), title="Error deleting Journal Entry")
-        frappe.msgprint("Error: {}".format(e))
+	try:
+		# Check if the Journal Entry exists
+		journal_entry = frappe.db.sql("""
+			SELECT name FROM `tabJournal Entry`
+			WHERE name = %s
+		""", (name,), as_dict=True)
+		
+		if journal_entry:
+			# Prepare the SQL query to delete the Journal Entry
+			sql = """
+				DELETE FROM `tabJournal Entry`
+				WHERE name = %s;
+			"""
+			
+			# Execute the SQL query to delete the journal entry
+			frappe.db.sql(sql, (name,))
+			
+			# Commit the transaction to the database
+			frappe.db.commit()
+			
+			frappe.msgprint("Journal Entry '{}' has been deleted successfully.".format(name))
+		else:
+			frappe.msgprint("Journal Entry '{}' was not found.".format(name))
+	
+	except Exception as e:
+		frappe.log_error(message=str(e), title="Error deleting Journal Entry")
+		frappe.msgprint("Error: {}".format(e))

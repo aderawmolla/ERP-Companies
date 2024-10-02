@@ -1,7 +1,5 @@
-
 // linked then source and target field name
 frm.add_fetch('transfer_order_no', 'from_warehouse', 'from_warehouse');
-
 // fetch from document to document
 frappe.ui.form.on('Supplier Quotation', {
     req_qutation: function (frm,cdt,cdn) {
