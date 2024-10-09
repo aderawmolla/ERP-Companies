@@ -246,18 +246,19 @@ class JournalEntry(AccountsController):
 					frappe.throw(_("Row {0}: Invalid reference {1}").format(d.idx, d.reference_name))
 
 				# check if party and account match
-				if d.reference_type in ("Sales Invoice", "Purchase Invoice"):
-					if (against_voucher[0] != d.party or against_voucher[1] != d.account):
-						frappe.throw(_("Row {0}: Party / Account does not match with {1} / {2} in {3} {4}")
-							.format(d.idx, field_dict.get(d.reference_type)[0], field_dict.get(d.reference_type)[1],
-								d.reference_type, d.reference_name))
+				# Aderaw please make this back
+				# if d.reference_type in ("Sales Invoice", "Purchase Invoice"):
+				# 	if (against_voucher[0] != d.party or against_voucher[1] != d.account):
+				# 		frappe.throw(_("Row {0}: Party / Account does not match with {1} / {2} in {3} {4}")
+				# 			.format(d.idx, field_dict.get(d.reference_type)[0], field_dict.get(d.reference_type)[1],
+				# 				d.reference_type, d.reference_name))
 
 				# check if party matches for Sales / Purchase Order
-				if d.reference_type in ("Sales Order", "Purchase Order"):
-					# set totals
-					if against_voucher != d.party:
-						frappe.throw(_("Row {0}: {1} {2} does not match with {3}") \
-							.format(d.idx, d.party_type, d.party, d.reference_type))
+				# if d.reference_type in ("Sales Order", "Purchase Order"):
+				# 	# set totals
+				# 	if against_voucher != d.party:
+				# 		frappe.throw(_("Row {0}: {1} {2} does not match with {3}") \
+				# 			.format(d.idx, d.party_type, d.party, d.reference_type))
 
 		self.validate_orders()
 		self.validate_invoices()
@@ -305,10 +306,10 @@ class JournalEntry(AccountsController):
 
 				if invoice.docstatus != 1:
 					frappe.throw(_("{0} {1} is not submitted").format(reference_type, reference_name))
-
-				if total and flt(invoice.outstanding_amount) < total:
-					frappe.throw(_("Payment against {0} {1} cannot be greater than Outstanding Amount {2}")
-						.format(reference_type, reference_name, invoice.outstanding_amount))
+                # Aderaw
+				# if total and flt(invoice.outstanding_amount) < total:
+				# 	frappe.throw(_("Payment against {0} {1} cannot be greater than Outstanding Amount {2}")
+				# 		.format(reference_type, reference_name, invoice.outstanding_amount))
 
 	def set_against_account(self):
 		accounts_debited, accounts_credited = [], []
