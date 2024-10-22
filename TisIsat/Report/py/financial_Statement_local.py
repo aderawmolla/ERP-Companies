@@ -17,17 +17,28 @@ from frappe.utils import (flt, getdate, get_first_day, add_months, add_days, for
 
 from six import itervalues
 
-def get_period_list(from_fiscal_year, to_fiscal_year, periodicity, accumulated_values=False,
-	company=None, reset_period_on_fy_change=True):
+
+# Declare the variables outside
+custom_period_start_date = None
+custom_period_end_date = None
+custom_filter_based_on = None 
+def get_period_list(from_fiscal_year, to_fiscal_year, period_start_date, period_end_date, filter_based_on, periodicity, accumulated_values=False,
+	company=None, reset_period_on_fy_change=True, ignore_fiscal_year=False):
+	custom_filter_based_on=filter_based_on
 	"""Get a list of dict {"from_date": from_date, "to_date": to_date, "key": key, "label": label}
 		Periodicity can be (Yearly, Quarterly, Monthly)"""
-
-	fiscal_year = get_fiscal_year_data(from_fiscal_year, to_fiscal_year)
-	validate_fiscal_year(fiscal_year, from_fiscal_year, to_fiscal_year)
-
-	# start with first day, so as to avoid year to_dates like 2-April if ever they occur]
-	year_start_date = getdate(fiscal_year.year_start_date)
-	year_end_date = getdate(fiscal_year.year_end_date)
+	if filter_based_on == 'Fiscal Year':
+		
+		fiscal_year = get_fiscal_year_data(from_fiscal_year, to_fiscal_year)
+		validate_fiscal_year(fiscal_year, from_fiscal_year, to_fiscal_year)
+		year_start_date = getdate(fiscal_year.year_start_date)
+		year_end_date = getdate(fiscal_year.year_end_date)
+	else:
+		custom_period_start_date=period_start_date
+		custom_period_end_date=period_end_date
+		validate_dates(period_start_date, period_end_date)
+		year_start_date = getdate(period_start_date)
+		year_end_date = getdate(period_end_date)
 
 	months_to_add = {
 		"Yearly": 12,
@@ -46,12 +57,15 @@ def get_period_list(from_fiscal_year, to_fiscal_year, periodicity, accumulated_v
 			"from_date": start_date
 		})
 
-		to_date = add_months(start_date, months_to_add)
+		if i==0 and filter_based_on == 'Date Range':
+			to_date = add_months(get_first_day(start_date), months_to_add)
+		else:
+			to_date = add_months(start_date, months_to_add)
+
 		start_date = to_date
 
-		if to_date == get_first_day(to_date):
-			# if to_date is the first day, get the last day of previous month
-			to_date = add_days(to_date, -1)
+		# Subtract one day from to_date, as it may be first day in next fiscal year or month
+		to_date = add_days(to_date, -1)
 
 		if to_date <= year_end_date:
 			# the normal case
@@ -60,8 +74,9 @@ def get_period_list(from_fiscal_year, to_fiscal_year, periodicity, accumulated_v
 			# if a fiscal year ends before a 12 month period
 			period.to_date = year_end_date
 
-		period.to_date_fiscal_year = get_fiscal_year(period.to_date, company=company)[0]
-		period.from_date_fiscal_year_start_date = get_fiscal_year(period.from_date, company=company)[1]
+		if not ignore_fiscal_year:
+			period.to_date_fiscal_year = get_fiscal_year(period.to_date, company=company)[0]
+			period.from_date_fiscal_year_start_date = get_fiscal_year(period.from_date, company=company)[1]
 
 		period_list.append(period)
 
@@ -91,7 +106,12 @@ def get_period_list(from_fiscal_year, to_fiscal_year, periodicity, accumulated_v
 
 	return period_list
 
+def validate_dates(from_date, to_date):
+	if not from_date or not to_date:
+		frappe.throw("From Date and To Date are mandatory")
 
+	if to_date < from_date:
+		frappe.throw("To Date cannot be less than From Date")
 def get_fiscal_year_data(from_fiscal_year, to_fiscal_year):
 	fiscal_year = frappe.db.sql("""select min(year_start_date) as year_start_date,
 		max(year_end_date) as year_end_date from `tabFiscal Year` where
@@ -125,9 +145,9 @@ def get_label(periodicity, from_date, to_date):
 
 def get_data(
 		company, root_type, balance_must_be, period_list, filters=None,
-		accumulated_values=1, only_current_fiscal_year=True, ignore_closing_entries=False,
+		accumulated_values=1, only_current_fiscal_year=False, ignore_closing_entries=False,
 		ignore_accumulated_values_for_fy=False , total = True):
-
+	
 	accounts = get_accounts(company, root_type)
 	if not accounts:
 		return None
@@ -139,14 +159,30 @@ def get_data(
 	gl_entries_by_account = {}
 	for root in frappe.db.sql("""select lft, rgt from tabAccount
 			where root_type=%s and ifnull(parent_account, '') = ''""", root_type, as_dict=1):
+		if custom_filter_based_on !="Fiscal Year":
+			set_gl_entries_by_account(
+				company,
+				period_list[0]["year_start_date"] if only_current_fiscal_year else None,
+				period_list[-1]["to_date"] if period_list else None,  # Check if period_list exists
+				root.lft, 
+				root.rgt, 
+				filters,
+				gl_entries_by_account, 
+				ignore_closing_entries=ignore_closing_entries
+			)
 
-		set_gl_entries_by_account(
-			company,
-			period_list[0]["year_start_date"] if only_current_fiscal_year else None,
-			period_list[-1]["to_date"],
-			root.lft, root.rgt, filters,
-			gl_entries_by_account, ignore_closing_entries=ignore_closing_entries
-		)
+		else:
+			set_gl_entries_by_account(
+				company,
+				custom_period_start_date,
+				custom_period_end_date,
+				root.lft, 
+				root.rgt, 
+				filters,
+				gl_entries_by_account, 
+				ignore_closing_entries=ignore_closing_entries
+			)
+
 
 	calculate_values(
 		accounts_by_name, gl_entries_by_account, period_list, accumulated_values, ignore_accumulated_values_for_fy)
@@ -203,9 +239,14 @@ def accumulate_values_into_parents(accounts, accounts_by_name, period_list, accu
 
 
 def prepare_data(accounts, balance_must_be, period_list, company_currency):
-	data = []
-	year_start_date = period_list[0]["year_start_date"].strftime("%Y-%m-%d")
-	year_end_date = period_list[-1]["year_end_date"].strftime("%Y-%m-%d")
+	if(custom_filter_based_on=="Fiscal Year"):
+		data = []
+		year_start_date = period_list[0]["year_start_date"].strftime("%Y-%m-%d")
+		year_end_date = period_list[-1]["year_end_date"].strftime("%Y-%m-%d")
+	else:
+		data = []
+		year_start_date = custom_period_start_date
+		year_end_date = custom_period_end_date
 
 	for d in accounts:
 		# add to output
