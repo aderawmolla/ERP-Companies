@@ -258,23 +258,23 @@ frappe.ui.form.on('Operational Plan', {
     get_critical_path: function(frm) {
 
         const dependency = frm.doc.activity_sequencing;
-        console.log("dependency", dependency);
         let nodes = {};
 
         if (dependency && frm.doc.start_date_of_first_task) {
             // Step 1: Initialize nodes with start and end dates based on dependencies
             dependency.forEach(task => {
-                const duration = task.duration || 0;  // Set default duration to 0 if undefined
+                const duration = task.duration || 0;
 
                 if (!nodes[task.activity]) {
-                    // Initialize a node if it doesn't exist
                     if (!task.predecessor_activity) {
                         nodes[task.activity] = {
                             es: [frm.doc.start_date_of_first_task],
-                            ef: [frappe.datetime.add_days(frm.doc.start_date_of_first_task, duration)]
+                            ef: [frappe.datetime.add_days(frm.doc.start_date_of_first_task, duration)],
+                            ls: [],
+                            lf: []
                         };
                     } else {
-                        nodes[task.activity] = { es: [], ef: [] };
+                        nodes[task.activity] = { es: [], ef: [], ls: [], lf: [] };
                         let predecessorEf = nodes[task.predecessor_activity]?.ef?.slice(-1)[0];
 
                         if (task.relationship_type === "Finish to Start" && predecessorEf) {
@@ -287,7 +287,6 @@ frappe.ui.form.on('Operational Plan', {
                         }
                     }
                 } else {
-                    // If the node already exists, adjust earliest start/finish as per relationship
                     if (task.relationship_type === "Finish to Start") {
                         let predecessorEf = nodes[task.predecessor_activity]?.ef?.slice(-1)[0];
                         nodes[task.activity]["es"].push(
@@ -302,38 +301,79 @@ frappe.ui.form.on('Operational Plan', {
 
             // Step 2: Calculate all possible paths and track their durations
             let paths = [];
-            console.log("nodes are", nodes);
             const traversePaths = (activity, currentPath, totalDuration) => {
-                const activityDuration = nodes[activity].ef.slice(-1)[0] || 0;
+                const activityStart = nodes[activity].es[0];
+                const activityFinish = nodes[activity].ef[0];
+                const activityDuration = activityFinish && activityStart ? 
+                    frappe.datetime.get_diff(activityFinish, activityStart) : 0;
+
                 currentPath.push({ activity, duration: activityDuration });
+                totalDuration += activityDuration;
 
                 if (!dependency.some(task => task.predecessor_activity === activity)) {
-                    // End of the path: push path details with duration
                     paths.push({
-                        path: currentPath.map(item => `${item.activity} (${item.duration || 0} days)`).join(" ............... "),
-                        duration: totalDuration + activityDuration
+                        path: currentPath.map(item => `${item.activity} (${item.duration} days)`).join(" ............... "),
+                        duration: totalDuration
                     });
                 } else {
-                    // Traverse to next dependent activities
                     dependency
                         .filter(task => task.predecessor_activity === activity)
-                        .forEach(task => traversePaths(task.activity, [...currentPath], totalDuration + (task.duration || 0)));
+                        .forEach(task => traversePaths(task.activity, [...currentPath], totalDuration));
                 }
             };
+
             traversePaths(dependency[0].activity, [], 0);
 
-            // Step 3: Update "all_paths" with formatted path and total duration
             frm.set_value(
                 "all_paths",
-                paths.map((p, index) => `path${index + 1}: ${p.path} (Total: ${p.duration || 0} days)`).join("\n")
+                paths.map((p, index) => `path${index + 1}: \n  ${p.path} (Total: ${p.duration} days)`).join("\n\n")
             );
             frm.refresh_field("all_paths");
 
-            // Step 4: Calculate Critical Path by selecting the path with the longest duration
+            // Step 3: Identify Critical Path
             let criticalPath = paths.reduce((max, path) => (path.duration > max.duration ? path : max), paths[0]);
             frm.set_value("tasks_on_the_critical_path", criticalPath.path);
             frm.set_value("critical_path_duration_in_days", criticalPath.duration);
 
+            // Step 4: Calculate LS and LF for all tasks (Backward Pass)
+            let latestFinishDate = frappe.datetime.add_days(frm.doc.start_date_of_first_task, criticalPath.duration);
+            let criticalActivities = criticalPath.path.split(" ............... ").map(item => item.split(" (")[0]);
+
+            // Backward pass for tasks on the critical path
+            criticalActivities.reverse().forEach(activity => {
+                let node = nodes[activity];
+                node.lf = [latestFinishDate];
+                node.ls = [frappe.datetime.add_days(latestFinishDate, -frappe.datetime.get_diff(node.ef[0], node.es[0]))];
+                latestFinishDate = node.ls[0];
+            });
+
+            // Backward pass for non-critical path tasks
+            dependency.reverse().forEach(task => {
+                if (!nodes[task.activity].lf.length) {
+                    let successors = dependency.filter(dep => dep.predecessor_activity === task.activity);
+                    if (successors.length > 0) {
+                        nodes[task.activity].lf = [Math.min(...successors.map(s => nodes[s.activity].ls[0]))];
+                        nodes[task.activity].ls = [
+                            frappe.datetime.add_days(nodes[task.activity].lf[0], -frappe.datetime.get_diff(nodes[task.activity].ef[0], nodes[task.activity].es[0]))
+                        ];
+                    }
+                }
+            });
+
+            // Step 5: Populate critical_path_table
+            frm.clear_table("critical_path_table");
+
+            Object.keys(nodes).forEach(activity => {
+                let task = nodes[activity];
+                let tableRow = frm.add_child("critical_path_table");
+                tableRow.activity = activity;
+                tableRow.es = task.es[0];
+                tableRow.ef = task.ef[0];
+                tableRow.ls = task.ls[0];
+                tableRow.lf = task.lf[0];
+            });
+
+            frm.refresh_field("critical_path_table");
             frm.refresh_field("tasks_on_the_critical_path");
             frm.refresh_field("critical_path_duration_in_days");
 
@@ -344,6 +384,7 @@ frappe.ui.form.on('Operational Plan', {
         }
     }
 });
+
 //stop here
 
 function addRowToCPT(frm, cdt, cdn) {
