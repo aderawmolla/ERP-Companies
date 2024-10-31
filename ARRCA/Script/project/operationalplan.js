@@ -258,7 +258,7 @@ frappe.ui.form.on('Operational Plan', {
     get_critical_path: function(frm) {
 
         const dependency = frm.doc.activity_sequencing;
-		console.log("dependency", dependency)
+        console.log("dependency", dependency);
         let nodes = {};
 
         if (dependency && frm.doc.start_date_of_first_task) {
@@ -273,7 +273,6 @@ frappe.ui.form.on('Operational Plan', {
                             es: [frm.doc.start_date_of_first_task],
                             ef: [frappe.datetime.add_days(frm.doc.start_date_of_first_task, duration)]
                         };
-					 	
                     } else {
                         nodes[task.activity] = { es: [], ef: [] };
                         let predecessorEf = nodes[task.predecessor_activity]?.ef?.slice(-1)[0];
@@ -303,7 +302,7 @@ frappe.ui.form.on('Operational Plan', {
 
             // Step 2: Calculate all possible paths and track their durations
             let paths = [];
-			console.log("nodes are",nodes)
+            console.log("nodes are", nodes);
             const traversePaths = (activity, currentPath, totalDuration) => {
                 const activityDuration = nodes[activity].ef.slice(-1)[0] || 0;
                 currentPath.push({ activity, duration: activityDuration });
@@ -311,7 +310,7 @@ frappe.ui.form.on('Operational Plan', {
                 if (!dependency.some(task => task.predecessor_activity === activity)) {
                     // End of the path: push path details with duration
                     paths.push({
-                        path: currentPath.map(item => `${item.activity} (${item.duration || 0} days)`).join(" - "),
+                        path: currentPath.map(item => `${item.activity} (${item.duration || 0} days)`).join(" ............... "),
                         duration: totalDuration + activityDuration
                     });
                 } else {
@@ -326,7 +325,7 @@ frappe.ui.form.on('Operational Plan', {
             // Step 3: Update "all_paths" with formatted path and total duration
             frm.set_value(
                 "all_paths",
-                paths.map(p => `${p.path} (Total: ${p.duration || 0} days)`).join("\n")
+                paths.map((p, index) => `path${index + 1}: ${p.path} (Total: ${p.duration || 0} days)`).join("\n")
             );
             frm.refresh_field("all_paths");
 
@@ -345,7 +344,6 @@ frappe.ui.form.on('Operational Plan', {
         }
     }
 });
-
 //stop here
 
 function addRowToCPT(frm, cdt, cdn) {
