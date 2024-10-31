@@ -29,14 +29,23 @@ frappe.ui.form.on("Projects", {
 
 function calculateYears(frm) {
     // Get the start and end dates
-    const startDate = frm.doc.expected_project_start_date;
-    const endDate = frm.doc.expected_project_end_date_ec;
+    const startDate = frm.doc.expected_project_start_date_gc;
+    const endDate = frm.doc.expected_end_date_gc;
+    console.log("The start and end day of the project is", startDate, endDate);
 
     // Check if both dates are present
     if (startDate && endDate) {
-        // Convert the dates to JavaScript Date objects
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        // Parse dates and set them to midnight to avoid timezone issues
+        const start = new Date(`${startDate}T00:00:00`);
+        const end = new Date(`${endDate}T00:00:00`);
+
+        // Check if the end date is before the start date
+        if (end < start) {
+            console.error("End date is earlier than start date.");
+            frm.set_value("contract_period_in_years", "0");  // Optional: handle the case of an invalid date range
+            frm.refresh_field("contract_period_in_years");
+            return;
+        }
 
         // Calculate the difference in years
         let yearsDifference = end.getFullYear() - start.getFullYear();

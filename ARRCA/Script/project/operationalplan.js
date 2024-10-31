@@ -25,7 +25,7 @@ frappe.ui.form.on("Holidayss", {
         var child=locals[cdt][cdn]
         if (child.from_date_ec) {
             // Update fields for GC date and calculate duration
-        let date = convertDateTOGC(chils.from_date_ec.toString());
+        let date = convertDateTOGC(child.from_date_ec.toString());
         let dateObject = new Date(date);
         
         // Format the date as a string in YYYY-MM-DD format
@@ -39,7 +39,7 @@ frappe.ui.form.on("Holidayss", {
         var child=locals[cdt][cdn]
         if (child.to_date_ec) {
             // Update fields for GC date and calculate duration
-        let date = convertDateTOGC(chils.to_date_ec.toString());
+        let date = convertDateTOGC(child.to_date_ec.toString());
         let dateObject = new Date(date);
         
         // Format the date as a string in YYYY-MM-DD format
@@ -391,12 +391,12 @@ frappe.ui.form.on('Operational Plan', {
 				return { [key]: { es, ef, lf, ls, ss, ff } };
 			});
 
-			console.log(processedNodesArray);
+			console.log("processed array",processedNodesArray);
 			var firstKey = Object.keys(processedNodesArray[0])[0];
 			var lastKey = Object.keys(processedNodesArray[processedNodesArray.length - 1])[0];
 
 			var totalDuration = frappe.datetime.get_diff(processedNodesArray[processedNodesArray.length - 1][lastKey].ef, processedNodesArray[0][firstKey].es);
-
+            totalDuration
 			console.log("1, ", firstKey)
 			console.log("2, ", lastKey)
 			console.log("duration", totalDuration)
@@ -406,9 +406,12 @@ frappe.ui.form.on('Operational Plan', {
 
 
 			const nodesWithSSZero = processedNodesArray.filter(obj => Object.values(obj)[0].ss === 0);
-			const nodeNamesWithSSZero = nodesWithSSZero.map(obj => Object.keys(obj)[0]);
+			// const nodeNamesWithSSZero = nodesWithSSZero.map(obj => Object.keys(obj)[0]);
+			// const tasksString = nodeNamesWithSSZero.join(" - ");
+            const nodeNamesWithSSZero = processedNodesArray.map(obj => Object.keys(obj)[0]);
 			const tasksString = nodeNamesWithSSZero.join(" - ");
 			frm.set_value("tasks_on_the_critical_path", tasksString);
+            console.log("Tasks on the critical path are",tasksString)
 			frm.refresh_field("tasks_on_the_critical_path");
 
 			console.log(nodeNamesWithSSZero);
@@ -432,7 +435,7 @@ frappe.ui.form.on('Operational Plan', {
 	}
 });
 
-
+//stop here
 
 function addRowToCPT(frm, cdt, cdn) {
 	console.log(frm.doc.no)
@@ -1706,13 +1709,6 @@ frappe.ui.form.on("Operational Plan Detail Two", {
 		AutoCalculateMonthValueTwo(d.doctype, d.name, d.planned);
 	}
 });
-
-
-
-
-
-
-
 
 
 frappe.ui.form.on('Operational Plan Detail One', {
