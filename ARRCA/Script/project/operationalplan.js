@@ -255,184 +255,95 @@ frappe.ui.form.on('Activity Sequencing', {
 });
 
 frappe.ui.form.on('Operational Plan', {
-	get_critical_path: function(frm) {
-		console.log("abe", frm.doc)
+    get_critical_path: function(frm) {
 
-		var dependency = frm.doc.activity_sequencing;
+        const dependency = frm.doc.activity_sequencing;
+		console.log("dependency", dependency)
+        let nodes = {};
 
-		let nodes = {}
+        if (dependency && frm.doc.start_date_of_first_task) {
+            // Step 1: Initialize nodes with start and end dates based on dependencies
+            dependency.forEach(task => {
+                const duration = task.duration || 0;  // Set default duration to 0 if undefined
 
+                if (!nodes[task.activity]) {
+                    // Initialize a node if it doesn't exist
+                    if (!task.predecessor_activity) {
+                        nodes[task.activity] = {
+                            es: [frm.doc.start_date_of_first_task],
+                            ef: [frappe.datetime.add_days(frm.doc.start_date_of_first_task, duration)]
+                        };
+					 	
+                    } else {
+                        nodes[task.activity] = { es: [], ef: [] };
+                        let predecessorEf = nodes[task.predecessor_activity]?.ef?.slice(-1)[0];
 
-		if (dependency && frm.doc.start_date_of_first_task) {
-			dependency.forEach(task => {
-				if (!nodes[task.activity]) {
+                        if (task.relationship_type === "Finish to Start" && predecessorEf) {
+                            nodes[task.activity]["es"].push(
+                                frappe.datetime.add_days(predecessorEf, task.lag_days - task.lead_days)
+                            );
+                            nodes[task.activity]["ef"].push(
+                                frappe.datetime.add_days(nodes[task.activity]["es"][0], duration)
+                            );
+                        }
+                    }
+                } else {
+                    // If the node already exists, adjust earliest start/finish as per relationship
+                    if (task.relationship_type === "Finish to Start") {
+                        let predecessorEf = nodes[task.predecessor_activity]?.ef?.slice(-1)[0];
+                        nodes[task.activity]["es"].push(
+                            frappe.datetime.add_days(predecessorEf, task.lag_days - task.lead_days)
+                        );
+                        nodes[task.activity]["ef"].push(
+                            frappe.datetime.add_days(nodes[task.activity]["es"].slice(-1)[0], duration)
+                        );
+                    }
+                }
+            });
 
-					if (!task.predecessor_activity) {
-						nodes[task.activity] = { es: [frm.doc.start_date_of_first_task], ef: [frappe.datetime.add_days(frm.doc.start_date_of_first_task, task.duration)] };
-						console.log("nodes first", nodes)
-					}
+            // Step 2: Calculate all possible paths and track their durations
+            let paths = [];
+			console.log("nodes are",nodes)
+            const traversePaths = (activity, currentPath, totalDuration) => {
+                const activityDuration = nodes[activity].ef.slice(-1)[0] || 0;
+                currentPath.push({ activity, duration: activityDuration });
 
-					else {
-						nodes[task.activity] = { es: [], ef: [] };
-						console.log("nodes final", nodes)
+                if (!dependency.some(task => task.predecessor_activity === activity)) {
+                    // End of the path: push path details with duration
+                    paths.push({
+                        path: currentPath.map(item => `${item.activity} (${item.duration || 0} days)`).join(" - "),
+                        duration: totalDuration + activityDuration
+                    });
+                } else {
+                    // Traverse to next dependent activities
+                    dependency
+                        .filter(task => task.predecessor_activity === activity)
+                        .forEach(task => traversePaths(task.activity, [...currentPath], totalDuration + (task.duration || 0)));
+                }
+            };
+            traversePaths(dependency[0].activity, [], 0);
 
-						if (task.relationship_type == "Finish to Start") {
-							let predecessorEf = nodes[task.predecessor_activity]["ef"].length - 1;
-							nodes[task.activity]["es"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["ef"][predecessorEf], (task.lag_days - task.lead_days)));
-							nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.activity]["es"][nodes[task.activity]["es"].length - 1], task.duration));
-						}
-						else if (task.relationship_type == "Start to Finish") {
-							let predecessorEs = nodes[task.predecessor_activity]["es"].length - 1;
-							nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["es"][predecessorEs], (task.lag_days - task.lead_days)));
-							// nodes[task.activity]["es"].push(nodes[task.activity]["ef"][nodes[task.activity]["ef"].length - 1] - task.duration);
-						}
-						else if (task.relationship_type == "Start to Start") {
-							let predecessorEs = nodes[task.predecessor_activity]["es"].length - 1;
-							nodes[task.activity]["es"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["es"][predecessorEs], (task.lag_days - task.lead_days)));
-							nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.activity]["es"][nodes[task.activity]["es"].length - 1], task.duration));
-						}
-						else if (task.relationship_type == "Finish to Finish") {
-							let predecessorEf = nodes[task.predecessor_activity]["ef"].length - 1;
-							nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["ef"][predecessorEf], (task.lag_days - task.lead_days)));
-							// nodes[task.activity]["es"].push(nodes[task.activity]["ef"][nodes[task.activity]["ef"].length - 1] - task.duration);
-						}
-					}
-				}
+            // Step 3: Update "all_paths" with formatted path and total duration
+            frm.set_value(
+                "all_paths",
+                paths.map(p => `${p.path} (Total: ${p.duration || 0} days)`).join("\n")
+            );
+            frm.refresh_field("all_paths");
 
-				else {
+            // Step 4: Calculate Critical Path by selecting the path with the longest duration
+            let criticalPath = paths.reduce((max, path) => (path.duration > max.duration ? path : max), paths[0]);
+            frm.set_value("tasks_on_the_critical_path", criticalPath.path);
+            frm.set_value("critical_path_duration_in_days", criticalPath.duration);
 
-					if (task.relationship_type == "Finish to Start") {
-						let predecessorEf = nodes[task.predecessor_activity]["ef"].length - 1;
-						nodes[task.activity]["es"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["ef"][predecessorEf], (task.lag_days - task.lead_days)));
-						nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.activity]["es"][nodes[task.activity]["es"].length - 1], task.duration));
-					}
-					else if (task.relationship_type == "Start to Finish") {
-						let predecessorEs = nodes[task.predecessor_activity]["es"].length - 1;
-						nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["es"][predecessorEs], (task.lag_days - task.lead_days)));
-						// nodes[task.activity]["es"].push(nodes[task.activity]["ef"][nodes[task.activity]["ef"].length - 1]);
-					}
-					else if (task.relationship_type == "Start to Start") {
-						let predecessorEs = nodes[task.predecessor_activity]["es"].length - 1;
-						nodes[task.activity]["es"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["es"][predecessorEs], (task.lag_days - task.lead_days)));
-						nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.activity]["es"][nodes[task.activity]["es"].length - 1], task.duration));
-					}
-					else if (task.relationship_type == "Finish to Finish") {
-						let predecessorEf = nodes[task.predecessor_activity]["ef"].length - 1;
-						nodes[task.activity]["ef"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["ef"][predecessorEf], (task.lag_days - task.lead_days)));
-						// nodes[task.activity]["es"].push(nodes[task.activity]["ef"][nodes[task.activity]["ef"].length - 1] );
-					}
-				}
-			});
+            frm.refresh_field("tasks_on_the_critical_path");
+            frm.refresh_field("critical_path_duration_in_days");
 
-
-
-
-			for (let i = dependency.length - 1; i >= 0; i--) {
-
-				let task = dependency[i];
-
-
-				if (i == dependency.length - 1) {
-					console.log("task", nodes[task.activity].ef)
-					console.log("max value", findMaxDate(nodes[task.activity].ef))
-					nodes[task.activity].lf = [findMaxDate(nodes[task.activity].ef)];
-					nodes[task.activity].ls = [frappe.datetime.add_days(nodes[task.activity].lf, - task.duration)];
-				}
-
-				if (task.predecessor_activity) {
-					if (!nodes[task.predecessor_activity].lf) {
-						nodes[task.predecessor_activity].lf = [];
-					}
-					if (!nodes[task.predecessor_activity].ls) {
-						nodes[task.predecessor_activity].ls = [];
-					}
-
-
-					if (task.relationship_type == "Finish to Start") {
-						let value = nodes[task.activity]["ls"].length - 1;
-						nodes[task.predecessor_activity]["lf"].push(frappe.datetime.add_days(nodes[task.activity]["ls"][value], - (task.lag_days + task.lead_days)));
-						let duration = dependency.find((item) => item.activity == task.predecessor_activity).duration;
-						nodes[task.predecessor_activity]["ls"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["lf"][nodes[task.predecessor_activity]["lf"].length - 1], - duration));
-					}
-
-					else if (task.relationship_type == "Start to Finish") {
-						nodes[task.predecessor_activity]["ls"].push(frappe.datetime.add_days(nodes[task.activity]["lf"][nodes[task.predecessor_activity]["lf"].length - 1], - (task.lag_days + task.lead_days)));
-					}
-
-					else if (task.relationship_type == "Start to Start") {
-						nodes[task.predecessor_activity]["ls"].push(frappe.datetime.add_days(nodes[task.activity]["ls"][nodes[task.predecessor_activity]["ls"].length - 1], - (task.lag_days + task.lead_days)));
-					}
-
-					else if (task.relationship_type == "Finish to Finish") {
-						let value = nodes[task.activity]["lf"].length - 1;
-						nodes[task.predecessor_activity]["lf"].push(frappe.datetime.add_days(nodes[task.activity]["lf"][value], - (task.lag_days + task.lead_days)));
-						let duration = dependency.find((item) => item.activity == task.predecessor_activity).duration;
-						nodes[task.predecessor_activity]["ls"].push(frappe.datetime.add_days(nodes[task.predecessor_activity]["lf"][nodes[task.predecessor_activity]["lf"].length - 1], - duration));
-					}
-				}
-
-			}
-
-
-			const nodesArray = Object.entries(nodes).map(([key, value]) => ({ [key]: value }));
-
-			console.log("node arrya", nodesArray)
-
-			const processedNodesArray = nodesArray.map(obj => {
-				const [key, value] = Object.entries(obj)[0];
-				const es = findMaxDate(value.es);
-				const ef = findMaxDate(value.ef);
-
-				const lf = findMinDate(value.lf);
-				const ls = findMinDate(value.ls);
-				const ss = frappe.datetime.get_diff(ls, es);
-				const ff = frappe.datetime.get_diff(lf, ef);
-
-				return { [key]: { es, ef, lf, ls, ss, ff } };
-			});
-
-			console.log("processed array",processedNodesArray);
-			var firstKey = Object.keys(processedNodesArray[0])[0];
-			var lastKey = Object.keys(processedNodesArray[processedNodesArray.length - 1])[0];
-
-			var totalDuration = frappe.datetime.get_diff(processedNodesArray[processedNodesArray.length - 1][lastKey].ef, processedNodesArray[0][firstKey].es);
-            totalDuration
-			console.log("1, ", firstKey)
-			console.log("2, ", lastKey)
-			console.log("duration", totalDuration)
-
-			frm.set_value('critical_path_duration_in_days', totalDuration)
-			frm.refresh_field('critical_path_duration_in_days')
-
-
-			const nodesWithSSZero = processedNodesArray.filter(obj => Object.values(obj)[0].ss === 0);
-			// const nodeNamesWithSSZero = nodesWithSSZero.map(obj => Object.keys(obj)[0]);
-			// const tasksString = nodeNamesWithSSZero.join(" - ");
-            const nodeNamesWithSSZero = processedNodesArray.map(obj => Object.keys(obj)[0]);
-			const tasksString = nodeNamesWithSSZero.join(" - ");
-			frm.set_value("tasks_on_the_critical_path", tasksString);
-            console.log("Tasks on the critical path are",tasksString)
-			frm.refresh_field("tasks_on_the_critical_path");
-
-			console.log(nodeNamesWithSSZero);
-			frm.doc.critical_path_table = []
-			processedNodesArray.map((item) => {
-				console.log("iteeem", item)
-				var tableRow = frm.add_child("critical_path_table")
-				tableRow.activity = Object.keys(item)[0];
-				tableRow.es = item[Object.keys(item)[0]].es;
-				tableRow.ef = item[Object.keys(item)[0]].ef;
-				tableRow.lf = item[Object.keys(item)[0]].lf;
-				tableRow.ls = item[Object.keys(item)[0]].ls;
-
-			})
-			frm.refresh_field("critical_path_table")
-		}
-		else (
-			frappe.show_alert("please select list of activities first")
-		)
-
-	}
+            console.log("All Paths with Durations", paths);
+            console.log("Critical Path", criticalPath);
+        } else {
+            frappe.show_alert("Please select a list of activities first.");
+        }
+    }
 });
 
 //stop here
