@@ -5,6 +5,7 @@ cur_frm.add_fetch('activity', 'subject', 'activity_name');
 cur_frm.add_fetch('activity', 'productivity', 'productivity');
 cur_frm.add_fetch('activity', 'duration_in_days', 'duration');
 
+cur_frm.add_fetch('activity', 'quantity', 'planned');
 
 
 frappe.ui.form.on('Operational Plan', {
@@ -16,8 +17,7 @@ frappe.ui.form.on('Operational Plan', {
 		}
 	}
 });
-
-
+// Aderaw the fool
 frappe.ui.form.on("Holidayss", {
 
     from_date_ec: function(frm,cdt,cdn) {
@@ -61,18 +61,6 @@ function setFieldInGC(frm, ec_field, gc_field) {
         frm.refresh_field(gc_field);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -188,23 +176,29 @@ frappe.ui.form.on('Operational Plan Detail', {
 	planned: function(frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		console.log("duration", frm.doc.duration_in_days)
-		console.log("calculation", ((row.planned * row.duration) / (row.quantity)))
 		if (row.planned > row.quantity) {
 			row.planned = null;
 			frappe.show_alert("Please select lower amount of quantity. It can not be done with the specidied day duration!")
-		} else if (((row.planned * row.duration) / (row.quantity)) > frm.doc.duration_in_days) {
+		} else if (row.duration > frm.doc.duration_in_days) {
 			console.log("i am hereeee")
 			row.planned = null;
 			frappe.show_alert("Please select lower amount of quantity. It can not be done with the specidied operational task duration!")
 		}
 		else {
-			row.planned_day = (row.planned * row.duration) / (row.quantity);
+			row.planned_day = row.duration;
 			console.log("ppppppppppppppp", row.planned_day, row.planned_day)
 			frm.refresh_field("task_list");
-			AutoPopulate(frm, cdt, cdn);
+			// AutoPopulate(frm, cdt, cdn);
 		}
 		frm.refresh_field("task_list")
+	},
+	activity:function(frm,cdt,cdn){
+	   AutoPopulate(frm, cdt, cdn);
+	   frm.refresh_field("task_list");
+
+
 	}
+	
 });
 
 //about the critical path calculation
@@ -326,7 +320,7 @@ frappe.ui.form.on('Operational Plan', {
 
             frm.set_value(
                 "all_paths",
-                paths.map((p, index) => `path${index + 1}: \n  ${p.path} (Total: ${p.duration} days)`).join("\n\n")
+                paths.map((p, index) => `Path${index + 1}:\n${p.path} (Total: ${p.duration} days)`).join("\n\n")
             );
             frm.refresh_field("all_paths");
 
@@ -705,8 +699,6 @@ frappe.ui.form.on("Operational Plan", {
 
 			var duration_result = GetDuration(date1, date2);
 			frappe.model.set_value(d.doctype, d.name, "duration", duration_result);
-
-
 			refresh_field("end_date");
 			refresh_field("duration");
 		}
@@ -714,23 +706,26 @@ frappe.ui.form.on("Operational Plan", {
 });
 
 function AutoPopulate(frm, cdt, cdn) {
-
-	cur_frm.add_fetch('activity', 'quantity', 'quantity');
+    console.log("Auto populate path")
+	cur_frm.add_fetch('activity', 'planned_qty_of_the_year', 'quantity');
+	cur_frm.add_fetch('activity', 'quantity', 'planned');
+    
 	cur_frm.add_fetch('activity', 'direct_cost_after_conversion', 'rate');
-	cur_frm.add_fetch('activity', 'duration', 'duration');
+	cur_frm.add_fetch('activity', 'duration_in_days', 'duration');
 
 	cur_frm.add_fetch('activity', 'unit', 'uom');
 	cur_frm.add_fetch('activity', 'subject', 'activity_name');
 	cur_frm.add_fetch('activity', 'productivity', 'productivity');
-	cur_frm.add_fetch('activity', 'duration', 'duration');
+	cur_frm.add_fetch('activity', 'duration_in_days', 'duration');
 
-
-	refresh_field("task_list");
-	refresh_field("uom");
-	refresh_field("quantity");
-	refresh_field("activity_name");
-	refresh_field("duration");
-
+  
+	frm.refresh_field("task_list");
+	frm.refresh_field("uom");
+	frm.refresh_field("quantity");
+	frm.refresh_field("activity_name");
+	frm.refresh_field("duration");
+    frm.refresh_field("duration_in_days");
+	frm.refresh_field("planned");
 
 	var date1 = frm.doc.start_date;
 	var date2 = frm.doc.end_date;
@@ -738,29 +733,8 @@ function AutoPopulate(frm, cdt, cdn) {
 	var d = locals[cdt][cdn];
 	var activity = frappe.model.get_value(d.doctype, d.name, "activity");
 
-	// if (activity && date1 && date2) {
-	// 	frappe.call({
-	// 		method: "erpnext.timesheet_sum_of_executed_qty.get_executed_quantity_from_timesheet",
-	// 		args: { activity: activity, date1: date1, date2: date2 }
-	// 	}).done((r) => {
-	// 		if (r.message.length >= 1)
-	// 			if (r.message[0]) {
 
-	// 				var to_date_executed = r.message[0];
-	// 				frappe.model.set_value(d.doctype, d.name, "to_date_executed", parseFloat(to_date_executed));
-	// 				var quantity = frappe.model.get_value(d.doctype, d.name, "quantity");
-	// 				var rate = frappe.model.get_value(d.doctype, d.name, "rate");
-	// 				var amount = quantity * rate;
-	// 				var remaining_planned_qty = quantity - parseFloat(to_date_executed);
-	// 				frappe.model.set_value(d.doctype, d.name, "remaining_planned_qty", remaining_planned_qty);
-	// 				frappe.model.set_value(d.doctype, d.name, "amount", amount);
-
-	// 			}
-	// 	})
-
-	// 	refresh_field("to_date_executed");
-	// }
-
+    // I commented after operational detail
 	frm.doc.operational_plan_detail_one = []
 	frm.doc.operational_plan_detail_two = []
 
@@ -792,7 +766,7 @@ function AutoPopulate(frm, cdt, cdn) {
 
 	var task_lists = frm.doc.task_list;
 	$.each(task_lists, function(_i, eMain) {
-
+     
 		//Script to populate child tables for machinary
 		var taskParent = eMain.activity;
 		var subject = eMain.activity_name;
@@ -1498,167 +1472,348 @@ function AutoPopulate(frm, cdt, cdn) {
 				}
 			})
 		}
+		
 		//Script to populate child tables for task detail by month
 		if (taskParent) {
-
 			frappe.call({
+				method: "frappe.client.get_list",
+				args: {
+					doctype: "Task",
+					filters: {
+						name: taskParent
+					},
+					fields: "*"
+				},
+				callback: function(response) {
+					console.log("The response of API from task list is:", response);
+					if (response.message && Array.isArray(response.message)) {
+						const tasks = response.message;
+						tasks.forEach(function(e) {
+							console.log("Processing task:", e);
+			
+							// Get Early Start (es) directly from frm.doc.critical_path_table for the current task
+							let earlyStart = null;
 
-				method: "erpnext.task_week_detail_populate_api.get_task_by_task_id",
-				args: { activity: taskParent }
+									// Convert critical_path_table to an array, even if it's undefined or an object
+									const criticalPathEntries = Array.isArray(frm.doc.critical_path_table)
+									? frm.doc.critical_path_table
+									: frm.doc.critical_path_table ? [frm.doc.critical_path_table] : [];
 
-			}).done((r) => {
-				$.each(r.message, function(_i, e) {
-					console.log("abebeb beso bela ena mote ende", e)
+								// Find the matching activity in the critical path table
+								const criticalPathEntry = criticalPathEntries.find(function(entry) {
+									return entry.activity === e.name; // Match activity name
+								});
 
-					var entryOne = frm.add_child("operational_plan_detail_one");
-					entryOne.activity = e[0];
-					entryOne.activity_name = e[17];
-					entryOne.duration = e[71];
-					entryOne.uom = e[61];
-					console.log("eee", e)
-					entryOne.productivity = e[51]
+								// If a matching entry is found, set earlyStart
+								if (criticalPathEntry) {
+									earlyStart = criticalPathEntry.es; // Set early start date if found
+								}
 
-
-					var value = planned_qty;
-					let remain = value;
-
-
-					var remainingPlannedFor2 = 0;
-
-					if (planned_qty) {
-
-						console.log("planned :", planned_qty, "productivity: ", entryOne.productivity, "value: ", value,)
-
-
-						const months = ['sep', 'oct', 'nov', 'dec', 'jan', 'feb'];
-						var total_planned = 0;
-
-						for (let i = 0; i < months.length; i++) {
-							const currentMonth = months[i];
-							const allowedDays = frm.doc.no[0][currentMonth] * eMain.quantity / eMain.duration;
-							remainingPlannedFor2 += frm.doc.no[0][currentMonth] * eMain.quantity / eMain.duration;
-
-							if (remain <= allowedDays) {
-								entryOne[`m_${i + 1}`] = remain;
-								total_planned += entryOne[`m_${i + 1}`];
-								console.log("remain", remain)
-								break;
-							} else {
-								entryOne[`m_${i + 1}`] = allowedDays;
-								total_planned += entryOne[`m_${i + 1}`];
-								remain -= allowedDays;
-								console.log("remain", remain)
-							}
-						}
-
-						entryOne.planned = total_planned;
-
-						frm.refresh_field("operational_plan_detail_one");
-
+			
+							// Fetch holidays from the Operational Plan
+							let holidays = getHolidaysFromOperationalPlan(frm);
+			
+							// Populate operational_plan_detail_one
+							var entryOne = frm.add_child("operational_plan_detail_one");
+							entryOne.activity = e.name;
+							entryOne.activity_name = e.task_specific_name;
+							entryOne.duration = e.duration_in_days;
+							entryOne.uom = e.unit;
+							entryOne.productivity = e.productivity;
+			
+							let remainingPlanned = AutoCalculateMonthValueOne(frm, entryOne, planned_qty, e.productivity, earlyStart, holidays);
+							console.log("Remaining Planned after First Half Allocation:", remainingPlanned);
+			
+							// Populate operational_plan_detail_two
+							var entryTwo = frm.add_child("operational_plan_detail_two");
+							entryTwo.activity = e.name;
+							entryTwo.activity_name = e.task_specific_name;
+							entryTwo.duration = e.duration_in_days;
+							entryTwo.uom = e.unit;
+							remainingPlanned = AutoCalculateMonthValueTwo(frm, entryTwo, remainingPlanned, e.productivity, earlyStart, holidays);
+			
+							// Refresh both fields after all rows are added
+							frm.refresh_field("operational_plan_detail_one");
+							frm.refresh_field("operational_plan_detail_two");
+						});
 					}
+				}
+			});
 
-					var entryTwo = frm.add_child("operational_plan_detail_two");
-					entryTwo.activity = e[0];
-
-					entryTwo.activity_name = e[17];
-					entryTwo.duration = e[71];
-					entryTwo.uom = e[61];
-					var totalPlannedTwo = 0;
-
-					const monthsSecond = ['mar', 'apr', 'may', 'jun', 'july', 'oct'];
-
-					console.log("remainingPlannedFor2", remainingPlannedFor2);
-
-					if (planned_qty > remainingPlannedFor2) {
-						for (let i = 0; i < monthsSecond.length; i++) {
-							const currentMonth = monthsSecond[i];
-							const allowedDays = frm.doc.no[0][currentMonth] * eMain.quantity / eMain.duration;
-
-							if (remain <= allowedDays) {
-								entryTwo[`m_${i + 7}`] = remain;
-								totalPlannedTwo += entryTwo[`m_${i + 7}`];
-								console.log("remain", remain)
-								break;
-							} else {
-								entryTwo[`m_${i + 7}`] = allowedDays;
-								totalPlannedTwo += entryTwo[`m_${i + 7}`];
-								remain -= allowedDays;
-								console.log("remain", remain)
-							}
-						}
-						entryTwo.planned = totalPlannedTwo;
-						refresh_field("operational_plan_detail_two");
-
-
-					}
-				})
-
-				refresh_field("operational_plan_detail_one");
-				refresh_field("operational_plan_detail_two");
-			})
-		}
+		}		
 
 
 	});
 }
 
-function AutoCalculateMonthValueOne(doctype, name, planned) {
-
-	console.log("One DocType: " + doctype);
-	console.log("One Name: " + name);
-
-	frappe.model.set_value(doctype, name, 'm_1', (planned / 12));
-	frappe.model.set_value(doctype, name, 'm_2', (planned / 12));
-	frappe.model.set_value(doctype, name, 'm_3', (planned / 12));
-	frappe.model.set_value(doctype, name, 'm_4', (planned / 12));
-	frappe.model.set_value(doctype, name, 'm_5', (planned / 12));
-	frappe.model.set_value(doctype, name, 'm_6', (planned / 12));
+// Function to get holidays from Operational Plan
+function getHolidaysFromOperationalPlan(frm) {
+    const holidays = frm.doc.holiday || []; // Assuming holiday list is linked to the operational plan
+    return holidays;
 }
 
-function AutoCalculateMonthValueTwo(doctype, name, planned) {
+// Function to distribute planned quantity for the first table (first half of the year)
+// Function to distribute planned quantity for the first table (September to February period)
+function AutoCalculateMonthValueOne(frm, child, planned, productivity, earlyStart, holidays) {
+    console.log("AutoCalculateMonthValueOne function called");
+    let remainingPlanned = planned;
+    const workingHoursPerDay = 8;
+    const daysProductivity = productivity * workingHoursPerDay;
 
-	console.log("Two DocType: " + doctype);
-	console.log("Two Name: " + name);
+    // Months in the first half of the assignment period
+    const months = ["sep", "oct", "nov", "dec", "jan", "feb"];
+    
+    // Determine if there's a year transition based on earlyStart month
+    const startDate = new Date(earlyStart);
+    const startMonth = startDate.getMonth(); // 0 for Jan, 8 for Sep, etc.
+    const startYear = startDate.getFullYear();
 
-	frappe.model.set_value(doctype, name, 'm_7', (planned / 25));
-	frappe.model.set_value(doctype, name, 'm_8', (planned / 26));
-	frappe.model.set_value(doctype, name, 'm_9', (planned / 27));
-	frappe.model.set_value(doctype, name, 'm_10', (planned / 26));
-	frappe.model.set_value(doctype, name, 'm_11', (planned / 25));
-	frappe.model.set_value(doctype, name, 'm_12', (planned / 24));
+    // Check if startMonth is September (8) or later, to decide on year transition
+    const firstHalfYear = startYear;
+    const secondHalfYear = (startMonth >= 8) ? startYear + 1 : startYear;
+
+    months.forEach((month, index) => {
+        const monthField = `m_${index + 1}`;
+        
+        // Assign year based on month position
+        const currentYear = (["sep", "oct", "nov", "dec"].includes(month)) ? firstHalfYear : secondHalfYear;
+
+        const workingDays = calculateWorkingDaysForMonth(
+            30,
+            holidays,
+            earlyStart,
+            month,
+            currentYear  // Pass the dynamically calculated year
+        );
+
+        const monthlyAllocation = daysProductivity * workingDays;
+
+        // Distribute based on remaining planned quantity
+        const allocatedPlanned = Math.min(remainingPlanned, monthlyAllocation);
+        child[monthField] = allocatedPlanned;
+
+        console.log(`Remaining planned after ${month} ${currentYear}:`, remainingPlanned); // Log remaining quantity each month
+        remainingPlanned -= allocatedPlanned;
+    });
+
+    child.planned = planned - remainingPlanned;
+    frm.refresh_field("operational_plan_detail_one");
+
+    return Math.max(remainingPlanned, 0);
 }
 
+// Function to distribute planned quantity for the second table (March to August period)
+function AutoCalculateMonthValueTwo(frm, child, remainingPlanned, productivity, earlyStart, holidays) {
+    console.log("AutoCalculateMonthValueTwo function called for operational_plan_detail_two");
+    const workingHoursPerDay = 8;
+    const daysProductivity = productivity * workingHoursPerDay;
+    child.planned = remainingPlanned;
+
+    const months = ["mar", "apr", "may", "jun", "jul", "aug"];
+    
+    const startDate = new Date(earlyStart);
+    const startMonth = startDate.getMonth();
+    const startYear = startDate.getFullYear();
+
+    // Determine the assignment year for the second half of the period (March-August)
+    const secondHalfYear = (startMonth >= 8) ? startYear + 1 : startYear;
+
+    months.forEach((month, index) => {
+        const monthField = `m_${index + 7}`;
+
+        const workingDays = calculateWorkingDaysForMonth(
+            30,
+            holidays,
+            earlyStart,
+            month,
+            secondHalfYear  // Pass the dynamically calculated year for second half
+        );
+
+        const monthlyAllocation = daysProductivity * workingDays;
+
+        // Distribute based on remaining planned quantity
+        const allocatedPlanned = Math.min(remainingPlanned, monthlyAllocation);
+        console.log(`Allocating ${allocatedPlanned} to ${monthField} for ${month} ${secondHalfYear}`);
+        child[monthField] = allocatedPlanned;
+
+        remainingPlanned -= allocatedPlanned;
+    });
+
+    frm.refresh_field("operational_plan_detail_two");
+
+    return Math.max(remainingPlanned, 0);
+}
+
+
+function calculateWorkingDaysForMonth(workingDays, holidays, earlyStart, month, year) {
+    let adjustedWorkingDays = workingDays; // Start with the initial working days in the month
+    console.log("________________________________");
+    console.log("Month", month);
+    console.log("Adjusted working days", adjustedWorkingDays);
+    console.log("Early start", earlyStart);
+    console.log("Holidays", holidays);
+
+    // Mapping of abbreviated month names to month indices (0-indexed)
+    const monthAbbreviations = {
+        jan: 0,
+        feb: 1,
+        mar: 2,
+        apr: 3,
+        may: 4,
+        jun: 5,
+        jul: 6,
+        aug: 7,
+        sep: 8,
+        oct: 9,
+        nov: 10,
+        dec: 11
+    };
+
+    // Retrieve the month index from the abbreviation
+    let monthIndex = monthAbbreviations[month.toLowerCase()];
+
+    if (monthIndex === undefined) {
+        console.log("Invalid month abbreviation:", month);
+        return;
+    } else {
+        console.log("Date month", monthIndex); // Corrected to output the month index
+    }
+
+    // Parse the early start date to get the start month and year
+    const earlyStartDate = new Date(earlyStart);
+    const startMonth = earlyStartDate.getMonth(); // 0-indexed month of earlyStart
+    const startYear = earlyStartDate.getFullYear(); // Full year from earlyStart
+
+    console.log("Early start year:", startYear);
+    console.log("Early start month:", startMonth + 1); // Log the month in 1-indexed format
+
+    // Skip months before the earlyStart month in the same year, or in a previous year
+    if (year < startYear || (year === startYear && monthIndex < startMonth)) {
+        console.log(`Skipping month: ${month} of ${year} because it's before the earlyStart month and year.`);
+        adjustedWorkingDays = 0;  // Set to 0 for months before earlyStart
+    }
+
+    // Adjust working days based on early start and holidays
+    if (year > startYear || (year === startYear && monthIndex >= startMonth)) {
+        console.log("Processing for month:", month, "of year:", year);
+
+        // For months where the early start is inside the same month and year
+        if (monthIndex === startMonth && year === startYear) {
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const remainingDays = daysInMonth - earlyStartDate.getDate() + 1;  // Remaining days from earlyStart onward
+            adjustedWorkingDays = remainingDays; // Adjust to the working days remaining in the month
+            console.log(`Adjusting for early start in the month: ${month}`);
+            console.log(`Remaining working days: ${adjustedWorkingDays}`);
+        }
+
+        // Subtract holidays from working days by checking if any holiday range overlaps with the month and year
+        holidays.forEach(holiday => {
+            // Parse the from_date and to_date of the holiday range
+            const holidayFromDate = new Date(holiday.from_date);
+            const holidayToDate = new Date(holiday.to_date);
+            
+            // Check if the holiday range falls within the target year and month
+            if ((holidayFromDate.getFullYear() === year || holidayToDate.getFullYear() === year)) {
+                // Check if the holiday is within the same month and year as the current month
+                let currentHolidayDate = new Date(holidayFromDate);
+                while (currentHolidayDate <= holidayToDate) {
+                    if (currentHolidayDate.getFullYear() === year && currentHolidayDate.getMonth() === monthIndex) {
+                        adjustedWorkingDays--; // Subtract one day for each day in the holiday range within the month
+                        console.log("Holiday from", holiday.from_date, "to", holiday.to_date, "subtracting 1 day");
+                    }
+                    // Move to the next day in the range
+                    currentHolidayDate.setDate(currentHolidayDate.getDate() + 1);
+                }
+            }
+        });
+    }
+
+    console.log("Adjusted working days for", month, "of year", year, ":", adjustedWorkingDays);
+    console.log("________________________________");
+
+    return adjustedWorkingDays;
+}
+
+
+// Function to access working days directly from the linked field in frm.doc.no
+function getWorkingDaysFromDoc(frm) {
+    console.log("the document before accessed is ", frm.doc.no);
+
+    // Check if frm.doc.no exists and is an array or object
+    if (!frm.doc.no || !Array.isArray(frm.doc.no) || frm.doc.no.length === 0) {
+        console.warn("No working days found. Returning default values.");
+        return {
+            sep: 0,
+            oct: 0,
+            nov: 0,
+            dec: 0,
+            jan: 0,
+            feb: 0,
+            mar: 0,
+            apr: 0,
+            may: 0,
+            jun: 0,
+            july: 0,
+            aug: 0
+        };
+    }
+
+    // Access the first element if it exists
+    const workingDays = frm.doc.no[0] || {};
+
+    return {
+        sep: workingDays.sep || 0,
+        oct: workingDays.oct || 0,
+        nov: workingDays.nov || 0,
+        dec: workingDays.dec || 0,
+        jan: workingDays.jan || 0,
+        feb: workingDays.feb || 0,
+        mar: workingDays.mar || 0,
+        apr: workingDays.apr || 0,
+        may: workingDays.may || 0,
+        jun: workingDays.jun || 0,
+        july: workingDays.july || 0,
+        aug: workingDays.aug || 0
+    };
+}
+// Main trigger function in the Operational Plan Detail form
 frappe.ui.form.on("Operational Plan Detail", {
-	activity: function(frm, cdt, cdn) {
-		AutoPopulate(frm, cdt, cdn);
-	},
+    activity: function(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        let planned = row.planned || 0; // Ensure planned is a number
+        let productivity = row.productivity || 0; // Ensure productivity is a number
+        console.log("Productivity and Planned at Start: ", planned, productivity);
 
-	planned: function(frm, cdt, cdn) {
-		var row = locals[cdt][cdn];
-		row.planned_day = (row.planned * row.duration) / (row.quantity);
-		console.log("ppppppppppppppp", row.planned_day, row.planned_day)
-		frm.refresh_field("task_list");
-		AutoPopulate(frm, cdt, cdn);
+        // Call the first half-year allocation function and capture the remaining planned quantity
+        // let remainingPlanned = AutoCalculateMonthValueOne(frm, planned, productivity);
+        
+        // console.log("Remaining Planned after First Half Allocation: ", remainingPlanned);
 
+        // // Pass the remaining planned quantity to the second half-year allocation function
+        // remainingPlanned = AutoCalculateMonthValueTwo(frm, remainingPlanned, productivity);
 
-	}
+        // console.log("Remaining Planned after Second Half Allocation: ", remainingPlanned);
+    },
 });
 
-frappe.ui.form.on("Operational Plan Detail One", {
-	planned: function(frm, cdt, cdn) {
-		var d = locals[cdt][cdn];
-		frm.refresh_field("planned");
-		AutoCalculateMonthValueOne(d.doctype, d.name, d.planned);
-	}
-});
 
-frappe.ui.form.on("Operational Plan Detail Two", {
-	planned: function(frm, cdt, cdn) {
-		var d = locals[cdt][cdn];
-		frm.refresh_field("planned");
-		AutoCalculateMonthValueTwo(d.doctype, d.name, d.planned);
-	}
-});
+
+
+// frappe.ui.form.on("Operational Plan Detail One", {
+// 	planned: function(frm, cdt, cdn) {
+// 		var d = locals[cdt][cdn];
+// 		frm.refresh_field("planned");
+// 		AutoCalculateMonthValueOne(d.doctype, d.name, d.planned);
+// 	}
+// });
+
+// frappe.ui.form.on("Operational Plan Detail Two", {
+// 	planned: function(frm, cdt, cdn) {
+// 		var d = locals[cdt][cdn];
+// 		frm.refresh_field("planned");
+// 		AutoCalculateMonthValueTwo(d.doctype, d.name, d.planned);
+// 	}
+// });
 
 
 frappe.ui.form.on('Operational Plan Detail One', {

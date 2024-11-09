@@ -13,6 +13,16 @@ frappe.ui.form.on('Stock Entry', {
     }
 });
 
+frm.set_query("activity", "task_list", function() {
+	return {
+		"filters": {
+			"project": frm.doc.project,
+			"is_group": 0
+		}
+	}
+});
+
+
 
 frappe.ui.form.on("Item", {
     item_category: function(frm, cdt, cdn) {

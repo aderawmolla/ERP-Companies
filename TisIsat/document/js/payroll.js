@@ -56,6 +56,8 @@ function getEmployees(frm, cdt, cdn) {
             target.netpay = getNetPay(source); // Calculate net pay
             target.pension_11 = source.salary * 0.11;
             target.pension_18 = percent_18;
+            target.account_name=source.bank_name;
+            target.commercial=source.bank_ac_no;
           });
           frm.refresh_field("payroll_table"); // Refresh the payroll table field after adding records
           calculateTotalSalary(frm);
@@ -87,9 +89,9 @@ function getDeductions(sourceRow) {
     (parseFloat(sourceRow.cost_sharing) || 0) +
     (parseFloat(sourceRow.other_earning) || 0) +
     (parseFloat(sourceRow.orda_saving) || 0) +
-    (parseFloat(sourceRow.telephone) || 0) +
     (parseFloat(sourceRow.staff_loan) || 0) +
-    (parseFloat(sourceRow.staff_loan) || 0) +
+    (parseFloat(sourceRow.penality_and_others) || 0) +
+    (parseFloat(sourceRow.income_tax) || 0)+
     incomeTax;
   return totalDeduction;
 }
@@ -100,12 +102,27 @@ function getEarning(source) {
     parseFloat(source.housing_allowance || 0) +
     parseFloat(source.professional_allowance || 0) +
     parseFloat(source.position_allowance || 0) +
-    parseFloat(source.transport_allowance || 0);
+    parseFloat(source.transport_allowance || 0)+
+    parseFloat(source.perdiem || 0)+
+    parseFloat(source.topup_allowance || 0)+
+    parseFloat(source.overtime || 0)+
+    parseFloat(source.cash_indeminity || 0)+
+    parseFloat(source.hardship_allowance || 0)+
+    parseFloat(source.responsibility_allowance || 0)+
+    parseFloat(source.telephone|| 0)+
+    parseFloat(source.leave_encashment || 0);
   return income;
 }
 function getIncomeTax(sourceRow) {
-  var totalIncome = getEarning(sourceRow);
-
+  var incomeWithtransport = getEarning(sourceRow);
+  var totalIncome;
+  if(sourceRow.telephone>700){
+    totalIncome = incomeWithtransport
+  }
+  else{
+    totalIncome = incomeWithtransport - (sourceRow.telephone)
+  }
+  
   if (totalIncome > 10900) {
     return totalIncome * 0.35 - 1500;
   } else if (totalIncome > 7800) {

@@ -121,7 +121,6 @@ function calculateDifference(frm, cdt, cdn, total_field, executed_field, remaini
 
 function calculateProgress(frm, cdt, cdn, total_qty_field, executed_qty_field) {
     let child = locals[cdt][cdn];
-
     // Ensure both fields have values before calculating the progress percentage
     if (child[total_qty_field] && child[executed_qty_field] !== undefined) {
         // Calculate physical progress percentage only if total quantity is greater than zero
@@ -130,7 +129,6 @@ function calculateProgress(frm, cdt, cdn, total_qty_field, executed_qty_field) {
         } else {
             child.physical_progress_percentage = 0; // Default to 0 if total quantity is zero or undefined
         }
-
         // Refresh the specific field to display the updated progress percentage
         frm.refresh_field('to_date_accomplishment');
     }
