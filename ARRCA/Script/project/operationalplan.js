@@ -1559,6 +1559,7 @@ function AutoCalculateMonthValueOne(frm, child, planned, productivity, earlyStar
     let remainingPlanned = planned;
     const workingHoursPerDay = 8;
     const daysProductivity = productivity * workingHoursPerDay;
+	const workingDaysByMonth = getWorkingDaysFromDoc(frm) || {}; // Default to empty object if undefined
 
     // Months in the first half of the assignment period
     const months = ["sep", "oct", "nov", "dec", "jan", "feb"];
@@ -1579,7 +1580,7 @@ function AutoCalculateMonthValueOne(frm, child, planned, productivity, earlyStar
         const currentYear = (["sep", "oct", "nov", "dec"].includes(month)) ? firstHalfYear : secondHalfYear;
 
         const workingDays = calculateWorkingDaysForMonth(
-            30,
+            workingDaysByMonth[month] || 0,
             holidays,
             earlyStart,
             month,
@@ -1608,6 +1609,7 @@ function AutoCalculateMonthValueTwo(frm, child, remainingPlanned, productivity, 
     const workingHoursPerDay = 8;
     const daysProductivity = productivity * workingHoursPerDay;
     child.planned = remainingPlanned;
+	const workingDaysByMonth = getWorkingDaysFromDoc(frm) || {}; // Default to empty object if undefined
 
     const months = ["mar", "apr", "may", "jun", "jul", "aug"];
     
@@ -1622,7 +1624,7 @@ function AutoCalculateMonthValueTwo(frm, child, remainingPlanned, productivity, 
         const monthField = `m_${index + 7}`;
 
         const workingDays = calculateWorkingDaysForMonth(
-            30,
+			workingDaysByMonth[month] || 0,
             holidays,
             earlyStart,
             month,
