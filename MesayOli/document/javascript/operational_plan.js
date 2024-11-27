@@ -371,8 +371,7 @@ function AutoCalculateMonthValueOne(frm, child, planned, productivity, earlyStar
         const currentYear = (["sep", "oct", "nov", "dec"].includes(month)) ? firstHalfYear : secondHalfYear;
 
         const workingDays = calculateWorkingDaysForMonth(
-            workingDaysByMonth[month] || 0,
-            holidays,
+			holidays,
             earlyStart,
             month,
             currentYear  // Pass the dynamically calculated year
@@ -415,7 +414,6 @@ function AutoCalculateMonthValueTwo(frm, child, remainingPlanned, productivity, 
         const monthField = `m_${index + 7}`;
 
         const workingDays = calculateWorkingDaysForMonth(
-			workingDaysByMonth[month] || 0,
             holidays,
             earlyStart,
             month,
@@ -437,97 +435,86 @@ function AutoCalculateMonthValueTwo(frm, child, remainingPlanned, productivity, 
     return Math.max(remainingPlanned, 0);
 }
 
-
-function calculateWorkingDaysForMonth(workingDays, holidays, earlyStart, month, year) {
-    let adjustedWorkingDays = workingDays; // Start with the initial working days in the month
-    console.log("________________________________");
-    console.log("Month", month);
-    console.log("Adjusted working days", adjustedWorkingDays);
-    console.log("Early start", earlyStart);
-    console.log("Holidays", holidays);
-
-    // Mapping of abbreviated month names to month indices (0-indexed)
+function calculateWorkingDaysForMonth(holidays, earlyStart, month, year) {
     const monthAbbreviations = {
-        jan: 0,
-        feb: 1,
-        mar: 2,
-        apr: 3,
-        may: 4,
-        jun: 5,
-        jul: 6,
-        aug: 7,
-        sep: 8,
-        oct: 9,
-        nov: 10,
-        dec: 11
+        jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+        jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
     };
 
-    // Retrieve the month index from the abbreviation
-    let monthIndex = monthAbbreviations[month.toLowerCase()];
+    const monthIndex = monthAbbreviations[month.toLowerCase()];
 
     if (monthIndex === undefined) {
         console.log("Invalid month abbreviation:", month);
         return;
-    } else {
-        console.log("Date month", monthIndex); // Corrected to output the month index
     }
 
-    // Parse the early start date to get the start month and year
+    // Parse early start and adjust for the given month
     const earlyStartDate = new Date(earlyStart);
+    const earlyStartMonth = earlyStartDate.getMonth();
+    const earlyStartYear = earlyStartDate.getFullYear();
+
+    let actualStartDate;
+	let adjustedWorkingDays;
+    if (year > earlyStartYear || (year === earlyStartYear && monthIndex > earlyStartMonth)) {
+        // Early start falls in a previous month; set start to 1st of the given month
+        actualStartDate = new Date(year, monthIndex, 1);
+    } else {
+        // Use the provided early start date
+        actualStartDate = earlyStartDate;
+    }
     const startMonth = earlyStartDate.getMonth(); // 0-indexed month of earlyStart
     const startYear = earlyStartDate.getFullYear(); // Full year from earlyStart
-
+    
     console.log("Early start year:", startYear);
     console.log("Early start month:", startMonth + 1); // Log the month in 1-indexed format
-
+    console.log(`----------------info about ${month}......................`)
     // Skip months before the earlyStart month in the same year, or in a previous year
     if (year < startYear || (year === startYear && monthIndex < startMonth)) {
         console.log(`Skipping month: ${month} of ${year} because it's before the earlyStart month and year.`);
         adjustedWorkingDays = 0;  // Set to 0 for months before earlyStart
     }
-
-    // Adjust working days based on early start and holidays
-    if (year > startYear || (year === startYear && monthIndex >= startMonth)) {
-        console.log("Processing for month:", month, "of year:", year);
-
-        // For months where the early start is inside the same month and year
-        if (monthIndex === startMonth && year === startYear) {
-            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-            const remainingDays = daysInMonth - earlyStartDate.getDate() + 1;  // Remaining days from earlyStart onward
-            adjustedWorkingDays = remainingDays; // Adjust to the working days remaining in the month
-            console.log(`Adjusting for early start in the month: ${month}`);
-            console.log(`Remaining working days: ${adjustedWorkingDays}`);
-        }
-
-        // Subtract holidays from working days by checking if any holiday range overlaps with the month and year
-        // holidays.forEach(holiday => {
-        //     // Parse the from_date and to_date of the holiday range
-        //     const holidayFromDate = new Date(holiday.from_date);
-        //     const holidayToDate = new Date(holiday.to_date);
-            
-        //     // Check if the holiday range falls within the target year and month
-        //     if ((holidayFromDate.getFullYear() === year || holidayToDate.getFullYear() === year)) {
-        //         // Check if the holiday is within the same month and year as the current month
-        //         let currentHolidayDate = new Date(holidayFromDate);
-        //         while (currentHolidayDate <= holidayToDate) {
-        //             if (currentHolidayDate.getFullYear() === year && currentHolidayDate.getMonth() === monthIndex) {
-        //                 adjustedWorkingDays--; // Subtract one day for each day in the holiday range within the month
-        //                 console.log("Holiday from", holiday.from_date, "to", holiday.to_date, "subtracting 1 day");
-        //             }
-        //             // Move to the next day in the range
-        //             currentHolidayDate.setDate(currentHolidayDate.getDate() + 1);
-        //         }
-        //     }
-        // });
-    }
-
-    console.log("Adjusted working days for", month, "of year", year, ":", adjustedWorkingDays);
-    console.log("________________________________");
-
+	else{
+		const daysBeforeEarlyStart = actualStartDate.getDate() - 1;
+		console.log(`Actual start date for ${month} ${year}:`, actualStartDate.toDateString());
+		console.log(`Days before early start:`, daysBeforeEarlyStart);
+	   
+		// Filter holidays after early start in the same month
+		let holidaysAfterStart = 0;
+		let number_of_days=0;
+		console.log("the holidays are",holidays)
+		holidays.forEach(holiday => {
+			const holidayStartDate = new Date(holiday.from_date);
+			if (
+				holidayStartDate >= actualStartDate &&
+				holidayStartDate.getMonth() === monthIndex &&
+				holidayStartDate.getFullYear() === year
+			) {
+			 number_of_days= getDaysBetweenDates(holiday.from_date,holiday.to_date);
+			 holidaysAfterStart += number_of_days;
+			 console.log("number of days in holiday",number_of_days)
+			}
+		});
+	
+		console.log(`Holidays after early start:`, holidaysAfterStart);
+	
+		// Calculate working days using the formula
+		adjustedWorkingDays = 30 - daysBeforeEarlyStart - holidaysAfterStart;
+	
+		console.log(`Adjusted working days for ${month} ${year}:`, adjustedWorkingDays);
+	}
     return adjustedWorkingDays;
 }
 
+function getDaysBetweenDates(from_date, to_date) {
+    const startDate = new Date(from_date);
+    const endDate = new Date(to_date);
 
+    // Calculate the difference in milliseconds
+    const differenceInMilliseconds = endDate - startDate;
+
+    // Convert milliseconds to days (1 day = 86,400,000 milliseconds)
+    return Math.ceil(differenceInMilliseconds / (1000 * 60 * 60 * 24))+1;
+}
 // Function to access working days directly from the linked field in frm.doc.no
 function getWorkingDaysFromDoc(frm) {
     console.log("the document before accessed is ", frm.doc.no);
