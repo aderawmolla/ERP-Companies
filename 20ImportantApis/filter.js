@@ -1,5 +1,25 @@
 
 // this is for filtering only linked documents which are sumitted
+frappe.ui.form.on("Operational Plan", {
+	project: function(frm, cdt, cdn) {
+		var d = locals[cdt][cdn];
+		frm.set_query("activity", "task_list", function() {
+			return {
+				"filters": {
+					"project": frm.doc.project
+				}
+			}
+		});
+
+		frm.set_query("activity", "activity_sequencing", function() {
+			return {
+				"filters": {
+					"project": frm.doc.project
+				}
+			}
+		});
+	}
+});
 frappe.ui.form.on('Stock Entry', {
     refresh: function(frm) {
         // filter material request by mr_no
