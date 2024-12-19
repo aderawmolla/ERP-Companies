@@ -147,8 +147,6 @@ frappe.ui.form.on('Holidayss', {
 });
 
 frappe.ui.form.on("Holidayss", {
-
-
     from_date_ec: function(frm,cdt,cdn) {
         console.log("I am touched")
         var child=locals[cdt][cdn]
@@ -231,7 +229,7 @@ frappe.ui.form.on('Operational Plan', {
 
                         if (task.relationship_type === "Finish to Start" && predecessorEf) {
                             nodes[task.activity]["es"].push(
-                                frappe.datetime.add_days(predecessorEf, task.lag_days - task.lead_days)
+                                frappe.datetime.add_days(predecessorEf, task.lag_days||0 - task.lead_days||0)
                             );
                             nodes[task.activity]["ef"].push(
                                 frappe.datetime.add_days(nodes[task.activity]["es"][0], duration)
@@ -242,7 +240,7 @@ frappe.ui.form.on('Operational Plan', {
                     if (task.relationship_type === "Finish to Start") {
                         let predecessorEf = nodes[task.predecessor_activity]?.ef?.slice(-1)[0];
                         nodes[task.activity]["es"].push(
-                            frappe.datetime.add_days(predecessorEf, task.lag_days - task.lead_days)
+                            frappe.datetime.add_days(predecessorEf, task.lag_days||0 - task.lead_days||0)
                         );
                         nodes[task.activity]["ef"].push(
                             frappe.datetime.add_days(nodes[task.activity]["es"].slice(-1)[0], duration)
