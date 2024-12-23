@@ -35,7 +35,8 @@
                     uniqueSuppliers.push(data[i]["Supplier"]);
                 }
             }
-            _p.push('<th style="width: 12%">ዝቅተኛ ዋጋ</th>
+            _p.push('<th style="width: 12%">የአንዱ ዋጋ</th>
+                           <th style="width: 12%">ጠቅላላ ዋጋ</th>
                             <th style="width: 12%">የተመረጠው ድርጅት</th>
                             <th style="width: 12%">ምርመር</th>');
         } else {
@@ -65,13 +66,15 @@
                     _p.push('<td style="width: 12%">');
     
                     var totalAmount;
+                    var unitRate;
                     for (var k = 0; k < supplierData.length; k++) {
                         totalAmount = supplierData[k]["Total Amount"];
+                        unitRate = supplierData[k]["Unit Rate Amount"];
                     }
     
                     var supplierItem = supplierData.find(d => d["Supplier"] === uniqueSuppliers[j]);
                     if (supplierItem) {
-                        _p.push(totalAmount);
+                        _p.push(unitRate);
                     } else {
                         _p.push('');
                     }
@@ -92,7 +95,8 @@
                     }
                 }
     
-                var formattedMinTotalAmount = minTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });    
+                var formattedMinTotalAmount = minTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });   
+                _p.push('<td style="width: 12%">',data[i]["Unit Rate Amount"], '</td>'); 
                 _p.push('<td style="width: 12%">', formattedMinTotalAmount, '</td>');
                 _p.push('<td style="width: 12%">', minSupplier, '</td>');
                 _p.push('<td style="width: 12%"></td>');
@@ -124,7 +128,7 @@
         
            
         _p.push('<tr>');
-            _p.push('<td colspan="4" style="width: 12%;font-size:14px;">በሎት አሸናፊ</td>');
+            _p.push('<td colspan="5" style="width: 12%;font-size:14px;">ጠቅላላ ዋጋ</td>');
             for (var j = 0; j < uniqueSuppliers.length; j++) {
                 _p.push('<td style="width: 12%">', supplierTotalSums[j].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
             }
