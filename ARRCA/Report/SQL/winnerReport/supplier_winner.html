@@ -1,0 +1,150 @@
+{%
+
+    var _p = [],
+        print = function () {
+            _p.push.apply(_p, arguments)
+        };
+    with (obj) {
+        _p.push('
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Supplier Winner Report</title>
+        </head>
+        
+        <body>
+            <h2 class="text-center">Supplier Winner Report</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>');
+        if (data.length > 0 && typeof data[0] === 'object') {
+             _p.push('<th style="width: 5px">ተ/ቁ</th>');
+            _p.push('<th style="width: 16%">የዕቃው ኮድ</th>');
+            _p.push('<th style="width: 16%">የዕቃው አይነት</th>');
+            _p.push('<th style="width: 8%">መለኪያ</th>');
+            _p.push('<th style="width: 8%">ብዛት</th>');
+    
+            var uniqueSuppliers = [];
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]["Supplier"] &&
+                    uniqueSuppliers.indexOf(data[i]["Supplier"]) === -1) {
+                    _p.push('<th style="width: 12%">',
+                        data[i]["Supplier"], '</th>');
+                    uniqueSuppliers.push(data[i]["Supplier"]);
+                }
+            }
+            _p.push('<th style="width: 12%">ዝቅተኛ ዋጋ</th>
+                            <th style="width: 12%">የተመረጠው ድርጅት</th>
+                            <th style="width: 12%">ምርመር</th>');
+        } else {
+            _p.push('<th>No data available</th>');
+        }
+        _p.push('</tr>
+                </thead>
+                <tbody>');
+    
+        var uniqueItemCodes = [];
+        for (var i = 0; i < data.length; i++) {
+            if (uniqueItemCodes.indexOf(data[i]["Item Code"]) === -1) {
+                uniqueItemCodes.push(data[i]["Item Code"]);
+                _p.push('<tr>');
+                if (data[i]["Index"] && data[i]["Index"].toString().length > 2) {
+		  _p.push('<td style="width: 5px">--</td>');
+		} else {
+		  _p.push('<td style="width: 5px">', data[i]["Index"], '</td>');
+		}
+                _p.push('<td style="width: 12%">', data[i]["Item Code"], '</td>');
+                _p.push('<td style="width: 12%">', data[i]["Item Name"], '</td>');
+                _p.push('<td style="width: 12%">', data[i]["UOM"], '</td>');
+                _p.push('<td style="width: 12%">', data[i]["Quantity"], '</td>');
+    
+                for (var j = 0; j < uniqueSuppliers.length; j++) {
+                    var supplierData = data.filter(d => d["Supplier"] === uniqueSuppliers[j] && d["Item Code"] === data[i]["Item Code"]);
+                    _p.push('<td style="width: 12%">');
+    
+                    var totalAmount;
+                    for (var k = 0; k < supplierData.length; k++) {
+                        totalAmount = supplierData[k]["Total Amount"];
+                    }
+    
+                    var supplierItem = supplierData.find(d => d["Supplier"] === uniqueSuppliers[j]);
+                    if (supplierItem) {
+                        _p.push(totalAmount);
+                    } else {
+                        _p.push('');
+                    }
+    
+                    _p.push('</td>');
+                }
+    
+                var minTotalAmount = Infinity;
+                var minSupplier = '';
+    
+                for (var j = 0; j < uniqueSuppliers.length; j++) {
+                    var supplier = uniqueSuppliers[j];
+                    var supplierData = data.filter(d => d["Supplier"] === supplier && d["Item Code"] === data[i]["Item Code"]);
+                    var totalAmount = supplierData.reduce((sum, item) => sum + parseFloat(item["Total Amount"].replace(/,/g, '')), 0);
+                    if (totalAmount < minTotalAmount && totalAmount!=0) {
+                        minTotalAmount = totalAmount;
+                        minSupplier = supplier;
+                    }
+                }
+    
+                var formattedMinTotalAmount = minTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });    
+                _p.push('<td style="width: 12%">', formattedMinTotalAmount, '</td>');
+                _p.push('<td style="width: 12%">', minSupplier, '</td>');
+                _p.push('<td style="width: 12%"></td>');
+                _p.push('</tr>');
+    
+            }
+        }
+
+
+
+
+
+
+
+
+
+        var supplierTotalSums = Array.from({ length: uniqueSuppliers.length }, () => 0);
+        
+        for (var j = 0; j < uniqueSuppliers.length; j++) {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]["Supplier"] === uniqueSuppliers[j]) {
+                    supplierTotalSums[j] += parseFloat(data[i]["Total Amount"].replace(/,/g, ''));
+                }
+            }
+        }
+        
+        var minSupplierTotalIndex = supplierTotalSums.indexOf(Math.min(...supplierTotalSums));
+        var minTotalAmount = Math.min(...supplierTotalSums);
+        
+           
+        _p.push('<tr>');
+            _p.push('<td colspan="4" style="width: 12%;font-size:14px;">በሎት አሸናፊ</td>');
+            for (var j = 0; j < uniqueSuppliers.length; j++) {
+                _p.push('<td style="width: 12%">', supplierTotalSums[j].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
+            }
+            
+            
+            _p.push('<td style="width: 12%"></td>');
+            _p.push('<td style="width: 12%">', minTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
+            _p.push('<td style="width: 12%;font-size:14px;">', uniqueSuppliers[minSupplierTotalIndex], '</td>');
+            _p.push('<td style="width: 12%"></td>');
+            _p.push('</tr>');
+
+
+    
+    
+        _p.push('</tbody>
+            </table>
+        </body>
+    
+        </html>');
+    }
+    return _p.join('');
+    %}
+    
