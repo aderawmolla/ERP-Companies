@@ -59,18 +59,39 @@ frappe.ui.form.on("Item", {
    },
 });
 // soon later
-frappe.meta.get_docfield (
-	'Work Assigned',
-	'task',
-	frm.doc.name
-  ).get_query = function () {
-	return {
-	  filters: {
-		specific_equipment_type: row.main_parts,
-		equipment_type: frm.doc.equipment_type,
-	  },
-	};
-  };
+// this doctype filters the the next row based on the selcted 
+frappe.ui.form.on ('Complain Table', {
+	budn: function (frm, cdt, cdn) {
+	  var row = locals[cdt][cdn];
+	  console.log ('we are here');
+	  frappe.meta.get_docfield (
+		'Complain Table',
+		'act',
+		frm.doc.name
+	  ).get_query = function () {
+		return {
+		  filters: {
+			specific_equipment_type: row.budn,
+		  },
+		};
+	  };
+	  if (frm.doc.equipment_type && row.budn) {
+		frappe.meta.get_docfield (
+		  'Complain Table',
+		  'act',
+		  frm.doc.name
+		).get_query = function () {
+		  return {
+			filters: {
+			  specific_equipment_type: row.budn,
+			  equipment_type: frm.doc.equipment_type,
+			},
+		  };
+		};
+	  }
+	  frm.refresh_field ('complain_detail');
+	},
+  });
 // 
 frm.fields_dict['items'].grid.get_field (
 	'location'

@@ -1,0 +1,3 @@
+
+eval: doc.equipment_type == "Machinery" || doc.equipment_type == "construction Equipment & Generators"
+eval: doc.equipment_type == "Heavy vehicle" || doc.equipment_type == "Light Vehicle"

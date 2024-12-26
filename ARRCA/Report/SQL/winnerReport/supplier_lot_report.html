@@ -11,7 +11,7 @@
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Supplier Winner Report</title>
+            <title>Supplier Lot  Report</title>
         </head>
         
         <body>
@@ -20,6 +20,7 @@
                 <thead>
                     <tr>');
         if (data.length > 0 && typeof data[0] === 'object') {
+            _p.push('<th style="width: 5px">ተ/ቁ</th>');
             _p.push('<th style="width: 12%">የዕቃው ኮድ </th>');
             _p.push('<th style="width: 12%">የዕቃው አይነት</th>');
             _p.push('<th style="width: 12%">መለኪያ</th>');
@@ -34,7 +35,7 @@
                     uniqueSuppliers.push(data[i]["Supplier"]);
                 }
             }
-            _p.push('<th style="width: 12%">የአንዱ ዋጋ</th>
+            _p.push('<th style="width: 12%">ጠቅላላ የአንዱ ዋጋ</th>
                             <th style="width: 12%"> ጠ/ዋጋ</th>
                             <th style="width: 12%">የተመረጠው ድርጅት</th>
                             <th style="width: 12%">ምርመር</th>');
@@ -50,6 +51,11 @@
             if (uniqueItemCodes.indexOf(data[i]["Item Code"]) === -1) {
                 uniqueItemCodes.push(data[i]["Item Code"]);
                 _p.push('<tr>');
+                    if (data[i]["Index"] && data[i]["Index"].toString().length > 2) {
+                        _p.push('<td style="width: 5px">--</td>');
+                      } else {
+                        _p.push('<td style="width: 5px">', data[i]["Index"], '</td>');
+                      }
                  _p.push('<td style="width: 12%">', data[i]["Item Code"], '</td>');
                 _p.push('<td style="width: 12%">', data[i]["Item Name"], '</td>');
                 _p.push('<td style="width: 12%">', data[i]["UOM"], '</td>');
@@ -90,15 +96,17 @@
                 }
     
                 var formattedMinTotalAmount = minTotalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                var total = minTotalAmount;
-                _p.push('<td style="width: 12%">',formattedMinTotalAmount/(data[i]["Quantity"]||1), '</td>');
+                var total = parseFloat(minTotalAmount);
+                var unitRate = total / parseFloat(data[i]["Quantity"] || 1);
+
+                _p.push('<td style="width: 12%">', unitRate.toFixed(2), '</td>');
                 _p.push('<td style="width: 12%">', total.toFixed(2), '</td>');
                 _p.push('<td style="width: 12%">', minSupplier, '</td>');
                 _p.push('<td style="width: 12%"></td>');
                 _p.push('<td style="width: 12%"></td>');
                 _p.push('<td style="width: 12%"></td>');
                 _p.push('</tr>');
-    
+
             }
         }
     
@@ -125,7 +133,7 @@
         
         
         _p.push('<tr>');
-        _p.push('<td colspan="4" style="width: 12%;font-size:14px;">በሎት አሸናፊ</td>');
+        _p.push('<td colspan="5" style="width: 12%;font-size:14px;">በሎት አሸናፊ</td>');
         for (var j = 0; j < uniqueSuppliers.length; j++) {
             _p.push('<td style="width: 12%">', supplierTotalSums[j].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '</td>');
         }

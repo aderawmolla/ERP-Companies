@@ -21,6 +21,10 @@ cur_frm.add_fetch ('serial_or_plate_no', 'chasis_no', 'chasis_no');
 cur_frm.add_fetch ('serial_or_plate_no', 'model', 'model');
 cur_frm.add_fetch ('serial_or_plate_no', 'location', 'location');
 
+cur_frm.add_fetch ('side_number', 'chasis_no', 'chasis_no');
+cur_frm.add_fetch ('side_number', 'model', 'model');
+cur_frm.add_fetch ('side_number', 'location', 'location');
+
 cur_frm.add_fetch ('item_code', 'item_name', 'item_name');
 cur_frm.add_fetch ('item_code', 'stock_uom', 'uom');
 cur_frm.add_fetch ('item_code', 'location', 'location');
@@ -28,13 +32,15 @@ cur_frm.add_fetch ('item_code', 'location', 'location');
 frappe.ui.form.on ('Maintenance Work order', {
     onload: function (frm, cdt, cdn) {
       // this is called again when date_ec is changed
-      fetchDocs(frm);
+      fetchDocs(frm,true);
+      fetchDocs(frm,false);
+
        
     }
     // 
   });
   
-  function fetchDocs(frm){
+  function fetchDocs(frm,isReturn){
     print("excute this please");
        if(frm.doc.from_date_gc && frm.doc.serial_or_plate_no && frm.doc.docstatus==0){
           var plat_no = frm.doc.serial_or_plate_no;
@@ -53,14 +59,19 @@ frappe.ui.form.on ('Maintenance Work order', {
                   docstatus: 1,
                 
               },
+            
+              purpose:isReturn?"Material Issue":"Material Receipt",
               fields: ['name'],
             },
             callback: function (response) {
               if (response.message.length > 0) {
                 console.log ('response', response.message);
-                if(frm.doc.replaced_part_and_labor_cost_summary){
+                if(frm.doc.replaced_part_and_labor_cost_summary && !isReturn){
                   frm.doc.replaced_part_and_labor_cost_summary=[];
                 }
+                else if(frm.doc.returned && isReturn){
+                 frm.doc.returned=[]
+                } 
 
                 response.message.forEach (function (stockEntry) {
                   frappe.call ({
@@ -77,9 +88,20 @@ frappe.ui.form.on ('Maintenance Work order', {
                         var source = resp.message;
                         console.log ('response for the detail', resp.message);
                         source.forEach (function (detail) {
-                          var rowTable = frm.add_child (
-                            'replaced_part_and_labor_cost_summary'
-                          );
+                          if(!isReturn){
+                            var rowTable = frm.add_child (
+                              'returned'
+                            );
+                           
+                            rowTable.item_code = detail.item_code;
+                            rowTable.item_name= detail.item_name;
+                            rowTable.stock_uom = detail.uom;
+                            rowTable.qty = detail.qty;
+                          }
+                          else{
+                            var rowTable = frm.add_child (
+                              'replaced_part_and_labor_cost_summary'
+                            );
                           console.log ('row table', rowTable);
                           rowTable.part_no = detail.item_code;
                           rowTable.description_parts_or_lubricants_or_materials_or_issued =
@@ -91,15 +113,24 @@ frappe.ui.form.on ('Maintenance Work order', {
                           frm.refresh_field (
                             'replaced_part_and_labor_cost_summary'
                           );
+                          }
+                         
+                          
                         });
                       }
-                      totalCostCalculator (frm);
+                       if(!isReturn){
+                        totalCostCalculator (frm);
+                       }
                     },
                   });
                 });
-              } else {
+              } 
+              else {
                 if(frm.doc.replaced_part_and_labor_cost_summary){
                   frm.doc.replaced_part_and_labor_cost_summary=[];
+                }
+                if(frm.doc.returned){
+                  frm.doc.returned=[];
                 }
                 frappe.show_alert (
                   `There is no Stock Entry(ሞዴል 22) which has plate no: ${plat_no} and date: ${date_ec}`

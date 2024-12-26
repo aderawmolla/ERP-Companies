@@ -2,7 +2,6 @@
 function getDaysBetweenDates(from_date, to_date) {
     const startDate = new Date(from_date);
     const endDate = new Date(to_date);
-
     // Calculate the difference in milliseconds
     const differenceInMilliseconds = endDate - startDate;
 

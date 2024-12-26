@@ -17,8 +17,10 @@ frappe.ui.form.on("Medical Form", {
 		
 		// Correct calculation for 'asked'
 		child.asked = ((child.amount_paid || 0) * (child.percent || 0)) / 100;
-
+        
 		frm.refresh_field('medicine');
+		calculateMedicine(frm, cdt, cdn);
+
 	},
 });
 
@@ -71,6 +73,7 @@ frappe.ui.form.on("Employee Medical Form", {
 
 frappe.ui.form.on("Medical Form", {
 	asked: function(frm, cdt, cdn) {
+		console.log("you mean you are not working")
 		calculateMedicine(frm, cdt, cdn);
 	},
 });
@@ -94,23 +97,23 @@ function calculateMedicine(frm, cdt, cdn) {
 
 			// if (row.from_government == "Yes") {
 			used += row.asked;
-			if (frm.doc.type_of_employee == "ለሰራተኛ" && used > 12000) {
+			if (frm.doc.type_of_employee == "ለሰራተኛ" && used >12000) {
 				frappe.msgprint("የህክምና  can not exceed birr 12,000")
 				row.asked = null;
 				allowSave = false;
 				return false;
 			}
 			// row.amount_paid = row.asked;
-			refresh_field("medicine")
+			frm.refresh_field("medicine")
 
 		}
 		else if (row.reason == "የመነፅር") {
 			forGlass += row.asked;
-			refresh_field("medicine")
+			frm.refresh_field("medicine")
 
 			if (frm.doc.type_of_employee == "ለሰራተኛ" && forGlass > parseFloat(3000)) {
 				row.asked = null;
-				refresh_field("medicine")
+				frm.refresh_field("medicine")
 				allowSave = false;
 				frappe.throw("Total amount paid for የመነጸርየመነጸር can not exceed 3000.");
 				return false;  // exit the loop
@@ -119,11 +122,11 @@ function calculateMedicine(frm, cdt, cdn) {
 
 		else if (row.reason == "ለወሊድ") {
 			forBIrth += row.asked;
-			refresh_field("medicine")
+			frm.refresh_field("medicine")
 
 			if (forBIrth > parseFloat(3000)) {
 				row.asked = null;
-				refresh_field("medicine")
+				frm.refresh_field("medicine")
 				allowSave = false;
 				frappe.throw("Total amount paid for ለለወሊድ can not exceed 3000.");
 				return false;  // exit the loop
@@ -132,17 +135,18 @@ function calculateMedicine(frm, cdt, cdn) {
 
 		else if (row.reason == "የጆሮ ማዳመጫ") {
 			forEar += row.asked;
-			refresh_field("medicine")
+			frm.refresh_field("medicine")
 
 			if (frm.doc.type_of_employee == "ለሰራተኛ" && forEar > parseFloat(2500)) {
 				row.asked = null;
-				refresh_field("medicine")
+				frm.refresh_field("medicine")
 				allowSave = false;
 				frappe.throw("Total amount paid for የጆሮ ማዳመጫ can not exceed 2500.");
 				return false;  // exit the loop
 			}
 		}
 	});
+	console.log("in this case allow save is ",allowSave)
 
 	if (allowSave) {
 		frm.set_value("used_medicine__from_12000", used);
@@ -167,17 +171,13 @@ function calculateMedicineTwo(frm, cdt, cdn) {
 		used += row.asked;
 		console.log("total for medicne 2", used)
 		// row.amount_paid = row.asked;
-		refresh_field("medicine2")
+		frm.refresh_field("medicine2")
 
-		// } else {
-		// 	used += row.asked * 0.8;
-		// 	row.amount_paid = row.asked * 0.8;
-		// 	refresh_field("medicine2")
-		// }
 	})
 
 	frm.set_value("total_medicine_in_birr", used);
 	frm.set_value("total_birr_for_medication", used);
+	frm.refresh_field("total_medicine_in_birr");
 
 	frm.refresh_field("total_birr_for_medication");
 }
