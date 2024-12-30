@@ -361,16 +361,4 @@ frappe.ui.form.on('Payroll Employee Detail', {
 
 
 
-(b+prp+ot+pos_allowance)
-*0.35-1500 if (b+prp+ot+pos_allowance)
->10900 else (b+prp+ot+pos_allowance)
-*0.30-950 if (b+prp+ot+pos_allowance)
->7800 else (b+prp+ot+pos_allowance)
-*0.15-142.50  if (b+prp+ot+pos_allowance)
->5250 else (b+prp+ot+pos_allowance)
-*0.20-302.50  if (b+prp+ot+pos_allowance)
->3200 else (b+prp+ot+pos_allowance)
-*0.20-302.50  if (b+prp+ot+pos_allowance)
->1650else (b+prp+ot+pos_allowance)
-*0.10-60  if (b+prp+ot+pos_allowance)
->600 else (b+prp+ot+pos_allowance)
+

@@ -3,7 +3,6 @@ frappe.ui.form.on("Tisisat Payroll", {
     getEmployees(frm, cdt, cdn);
   },
 });
-
 function getEmployees(frm, cdt, cdn) {
   console.log("Fetching employees...");
   if (frm.doc.payroll_table) {
@@ -123,12 +122,13 @@ function getIncomeTax(sourceRow) {
     totalIncome = incomeWithtransport - (sourceRow.telephone)
   }
   
+
   if (totalIncome > 10900) {
     return totalIncome * 0.35 - 1500;
   } else if (totalIncome > 7800) {
     return totalIncome * 0.3 - 955; // Fixing to 955 instead of 950
   } else if (totalIncome > 5250) {
-    return totalIncome * 0.25 - 565; // Fixing the percentage to 25%
+    return totalIncome * 0.25 - 565; // Fixing the percentage to 20%
   } else if (totalIncome > 3200) {
     return totalIncome * 0.2 - 302.5;
   } else if (totalIncome > 1650) {

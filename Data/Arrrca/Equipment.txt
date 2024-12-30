@@ -1,0 +1,56 @@
+Light Vehicle
+Heavy vehicle
+Machine
+construction Equipment & Generators
+
+
+//Light vehicle
+Single Cup
+Mini cup
+Double cup
+Station,
+Automobile
+Motor bike
+
+// Heavy Vehicle
+Dump truck
+Shower truck
+Fuel truck
+Low bed
+High bed
+Carrier truck
+Bus
+
+//Machine
+
+
+Dozer
+Excavator
+Grader
+Loader
+Roller
+Wagon
+drill
+Tractor
+Fork lift
+Backhoe loader
+Crane
+Scrapper
+
+//construction and Generators
+Compactor
+Generator
+welding machine
+Mixer
+Equipment &Vibrator
+Water pump
+Compressor
+Dumper
+Crusher
+
+eval: doc.equipment_type == "Heavy vehicle" || doc.equipment_type == "Light Vehicle"
+
+eval: doc.equipment_type == "Machine" || doc.equipment_type == "construction Equipment & Generators"
+
+
+
