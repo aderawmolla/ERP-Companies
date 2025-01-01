@@ -41,7 +41,7 @@ frappe.ui.form.on ('Maintenance Work order', {
   });
   
   function fetchDocs(frm,isReturn){
-    print("excute this please");
+   
        if(frm.doc.from_date_gc && frm.doc.serial_or_plate_no && frm.doc.docstatus==0){
           var plat_no = frm.doc.serial_or_plate_no;
         //   var technician_name = child.technician_name;

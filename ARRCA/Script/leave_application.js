@@ -84,7 +84,7 @@ frappe.ui.form.on("Leave Application",{
 
   },
   requested__half_to_date:function(frm,cdt,cdn){
-    var days=getLeaves(frm.doc.requsted_from_date_gc,frm.doc.requested_to_date_gc)
+    var days=getLeaves(frm.doc.requested_half_to_gc,frm.doc.requested__half_to_date)
     frm.set_value('requested_leaves',(frm.doc.requested_leaves||0)+days/2)
     frm.refresh_field('requested_leaves')
   },

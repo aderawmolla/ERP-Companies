@@ -4,5 +4,5 @@
 // list view customization
 // message and notification
 // field level access permission
+// Pos integration
 // add table dynamicaaly
-// hide and unhide table column dynamically
