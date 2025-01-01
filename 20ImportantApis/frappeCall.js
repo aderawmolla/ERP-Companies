@@ -61,3 +61,30 @@ frappe.call({
 
     }
   });
+
+  frappe.call({
+    method: "frappe.client.get_list",
+    args: {
+        doctype: "Disposed of Equipment",
+        filters: [
+            ["plate_no", "=", frm.doc.plate_no || ""]
+        ],
+        fields: ["*"],
+    },
+    callback: function (response1) {
+        frappe.call({
+            method: "frappe.client.get_list",
+            args: {
+                doctype: "Disposed of Equipment",
+                filters: [
+                    ["side_no", "=", frm.doc.side_no || ""]
+                ],
+                fields: ["*"],
+            },
+            callback: function (response2) {
+                const combinedResults = [...response1.message, ...response2.message];
+                console.log("Combined Response:", combinedResults);
+            },
+        });
+    },
+});

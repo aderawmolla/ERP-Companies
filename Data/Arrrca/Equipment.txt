@@ -5,6 +5,7 @@ construction Equipment & Generators
 
 
 //Light vehicle
+eval:doc.equipment_type=="Light Vehicle"
 Single Cup
 Mini cup
 Double cup
@@ -13,6 +14,8 @@ Automobile
 Motor bike
 
 // Heavy Vehicle
+eval:doc.equipment_type=="Heavy vehicle"
+
 Dump truck
 Shower truck
 Fuel truck
@@ -22,6 +25,7 @@ Carrier truck
 Bus
 
 //Machine
+eval:doc.equipment_type=="Machine"
 
 
 Dozer
@@ -38,6 +42,7 @@ Crane
 Scrapper
 
 //construction and Generators
+eval:doc.equipment_type=="construction Equipment & Generators"
 Compactor
 Generator
 welding machine

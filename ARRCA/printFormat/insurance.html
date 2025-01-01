@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Page Title</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-size: 12px;
+            line-height: 1.5;
+            font-size: 12px;
+        }
+
+        .page-content {
+            flex: 1;
+        }
+
+        .footer {
+            padding: 10px;
+            text-align: center;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-content">
+        <div class="letter-head">
+            {{ letter_head or "_________________" }}
+            <div style="padding-top: 5px; display: flex; flex-direction: column; align-items: flex-end;">
+                <div style="display: flex;">
+                    <label for="docName">ቁጥር:</label>
+                    <input id="docName" style="text-align: left; width: 200px; border: none;"
+                        placeholder="____________________">
+                </div>
+                <div style="display: flex;">
+                    <label for="currentDate">ቀን:</label>
+                    <input type="text" id="currentDate"
+                        style="text-align: left; width: 200px; margin-right: 10px; border: none;"
+                        value="______________________________">
+                </div>
+            </div>
+            <div style="display: flex; align-items: start;">
+                <label for="" style="font-weight: bold; padding-right: 2px;">ለ {{doc.insurance_name or "___________________"}}</label>
+                 <br/>
+                <span>ባ/ዳር</span>
+            </div>
+        </div>
+
+        <div {% if terms_exist -%} class="page-break" {%- endif %}>
+            <p>
+                <br>
+            <h2 style="text-align: center; text-decoration: underline;"><b>ጉዳዩ፡- <u>የመኪና አደጋን ይመለከታል</u></b></h2>
+           
+            የ{{ doc.place_of_work or "_________________" }} ምድብ የሆነ ሰሌዳ ቁጥር {{ doc.serial_or_plate_no or
+            "_________________" }} መኪና በ{{ doc.ec_date or "_________________" }} ዓ .ም ከቀኑ {{ doc.tim or
+            "_________________" }} ሲሆን በ {{ doc.driver_name or "_________________" }} አሽከርካሪነት ከ {{ doc.from or
+            "_________________" }} ወደ {{ doc.to or "_________________" }} አቅጣጫ ይጓዝ እንደነበር {{ doc.accident_place or
+            "_________________" }} አካባቢ ሲደርስ {{ doc.accident_detail or "_________________" }} በመጋጨቱ በመኪናችን ላይ ሲደርስ በአቶ
+            {{ doc.other_driver or "_________________" }} የሚሽከረከረዉ {% if doc.detail_accident %}
+            {% for accident in doc.detail_accident %}
+            {{ accident }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+            {% else %}
+            "_________________"
+            {% endif %} ጉዳት
+            ደርሶበታል፡፡
+            <br><br>
+            <p>ስለሆነም ለመኪናችን በገባነዉ የኢንሹራንስ ዉል መሰረት የደረሰዉን ጉዳት በመድን ዋስትና እንዲሸፈንልን የተለመደ ትብብራችሁን እየጠየቅን የደረሰዉ አደጋ በ{{
+                doc.police or "_________________" }} ፖሊስ ጣቢያ የተመዘገበ ስለሆነ ክሌም መጠየቂያ እንዲላክልን ሆኖ በእኛ በኩል ቀሪ መረጃ ካለ የምናሟላ መሆኑን
+                እንገላፃለን፡፡</p>
+            
+          
+            <br><br><br><br><br>
+            <p style="text-align: right;">“ከሠላምታ ጋር”</p>
+            <p style="text-align: left;">ግልባጭ// <br>
+                አስ/ዘርፍ ም/ስራ አስኪያጅ <br>
+                ለዉስጥና ዉጭ ጥገና ክትትል<br>
+                ለመሳ/ተሸመረጃ ጥንክር፣ ኢንሹራንስና ቦሎ ክትትል ባለሙያ<br>
+                ገመኮኤ<br>
+                ባ/ዳር<br>
+            </p>
+            
+        </div>
+    </div>
+
+</body>
+
+</html>
